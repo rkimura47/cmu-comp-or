@@ -1,0 +1,25 @@
+\documentclass[12pt]{article}
+\usepackage{../tutorialsty}
+\usepackage[urlcolor=blue]{hyperref}
+\urlstyle{sf}
+%\def\UrlBreaks{\do/\do.\do-}
+
+% For algorithms
+%\usepackage{algorithm,algorithmic}
+
+% Bibliography
+%\usepackage[style=numeric, backend=bibtex8, doi=false, url=false, isbn=false, eprint=false]{biblatex}
+%\addbibresounce{./example_bibfile.bib}
+
+\begin{document}
+\title{Module 11}
+\author{Ryo Kimura}
+\date{}
+\maketitle
+
+\section{Callbacks}
+% Review of Branch and Bound
+%The idea is divide the feasible region based on the optimal solution to the LP relaxation. If the optimal solution to the LP relaxation happens to satisfy the integrality constraints of the original MIP, then it is also an optimal solution to the MIP. Otherwise, we branch, i.e., create two subproblems that do not eliminate any feasible solutions of the MIP but eliminate the current LP optimal solution (e.g., by picking a variable taking a fractional value, say $x_3 = 2.3$, and adding the constraint $x_3 \le 2$ in one subproblem and $x_3 \ge 2.3$ in the other subproblem).
+
+Look at what information is available in a callback\ldots what can and can't be done?
+\end{document}
