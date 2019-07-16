@@ -1,0 +1,35 @@
+# NOTE: To use this file, make sure it's named "Makefile".
+# BEGIN CONFIG SECTION
+# Set this to the model name(s)
+# (e.g., "mip1" if your source file is "mip1.cpp")
+MODEL_NAMES = example
+# END CONFIG SECTION
+
+# BEGIN MAKEFILE
+CCC = g++
+# Options with and without debug info
+CCOPT = -m64 -g -DIL_STD -Wno-ignored-attributes
+#CCOPT = -m64 -O -DNDEBUG -DIL_STD -Wno-ignored-attributes
+
+CPLEXDIR      = $(CPLEX_ROOT)/cplex
+CONCERTDIR    = $(CPLEX_ROOT)/concert
+CONCERTINCDIR = $(CONCERTDIR)/include
+CPLEXINCDIR   = $(CPLEXDIR)/include
+CCFLAGS = $(CCOPT) -I$(CPLEXINCDIR) -I$(CONCERTINCDIR)
+
+SYSTEM     = x86-64_linux
+LIBFORMAT  = static_pic
+CPLEXLIBDIR   = $(CPLEXDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
+CONCERTLIBDIR = $(CONCERTDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
+CCLNDIRS  = -L$(CPLEXLIBDIR) -L$(CONCERTLIBDIR)
+
+CCLNFLAGS = -lconcert -lilocplex -lcplex -lm -lpthread -ldl
+
+.PHONY: all
+all: $(MODEL_NAMES)
+
+$(MODEL_NAMES): % : %.cpp
+	$(CCC) $(CCFLAGS) $(CCLNDIRS) -o $@ $< $(CCLNFLAGS)
+.PHONY: clean
+clean:
+	rm -f $(MODEL_NAMES) *.o

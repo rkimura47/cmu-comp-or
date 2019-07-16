@@ -1,0 +1,35 @@
+# Set up project and targets
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+project(myproject LANGUAGES CXX)
+add_executable(mytarget "source.cpp")
+
+# Tell CMake where CPLEX is installed
+set(CMAKE_LIBRARY_PATH
+  "$ENV{CPLEX_ROOT}/cplex/lib/x86-64_linux/static_pic"
+  "$ENV{CPLEX_ROOT}/concert/lib/x86-64_linux/static_pic"
+)
+set(CMAKE_INCLUDE_PATH
+  "$ENV{CPLEX_ROOT}/cplex/include"
+  "$ENV{CPLEX_ROOT}/concert/include"
+)
+
+# Find libraries and includes
+find_library(CONCERT_LIB "concert")
+find_library(ILOCPLEX_LIB "ilocplex")
+find_library(CPLEX_LIB "cplex")
+find_path(CPLEX_INC "ilcplex")
+find_path(CONCERT_INC "ilconcert")
+
+# Configure targets
+set_target_properties(mytarget PROPERTIES
+  CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
+target_link_libraries(mytarget PRIVATE ${CONCERT_LIB} ${ILOCPLEX_LIB} ${CPLEX_LIB} m pthread dl)
+target_include_directories(mytarget PRIVATE ${CPLEX_INC} ${CONCERT_INC})
+target_compile_definitions(mytarget PRIVATE IL_STD)
+target_compile_options(mytarget PRIVATE
+  "-m64"
+  "$<$<CONFIG:Release>:-Wno-ignored-attributes>"
+)

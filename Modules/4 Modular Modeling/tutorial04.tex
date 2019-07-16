@@ -1,0 +1,110 @@
+\documentclass[12pt]{article}
+\usepackage{../tutorialsty}
+\usepackage{xcolor}
+%\usepackage[hypertex,urlcolor=blue]{hyperref}
+\usepackage[colorlinks=true,urlcolor=blue]{hyperref}
+\urlstyle{sf}
+%\def\UrlBreaks{\do/\do.\do-}
+
+\newcommand\red[1]{{\color{red}#1}}
+%\newcommand\blue[1]{{\color{blue}#1}}
+%\newcommand\magenta[1]{{\color{magenta}#1}}
+
+\begin{document}
+\title{Module 4}
+\author{Ryo Kimura}
+\date{}
+\maketitle
+
+\setcounter{section}{3}
+\section{Detailed Models}
+In his module we will discuss methods to write more flexible optimization models which incorporate input data, modified solver parameters, and command line arguments.
+
+\subsection{DMAS Structure}
+The optimization model we implemented in module 3 was relatively simple and fairly inflexible. In contrast, most optimization models used in practice require some degree of flexibility; e.g., gracefully handling different input parameters, limiting the use of system resources, supporting certain solution queries, etc. A common way to achieve this is by separating the optimization model into four components, which we refer to as the \emph{DMAS structure}:
+\begin{itemize}
+    \item \textbf{D}ata: all ``external'' information that is needed to write down a specific MIP model
+    \item \textbf{M}odel: a representation of the model that is to be solved
+    \item \textbf{A}lgorithm: a procedure that transforms the state of the model from \emph{Not Solved} to \emph{Solved}, generating relevant information along the way
+    \item \textbf{S}olution: a value for each decision variable that satisfies all of the constraints (and ideally has the ``best'' objective value)
+\end{itemize}
+MIP solvers (i.e., Gurobi and CPLEX) are written with this DMAS structure in mind; in particular, the API is designed so that each of these components can be modified and developed separately from the others.
+
+\subsection{Modifying the Data}
+Both Gurobi and CPLEX can read in MIP models that are encoded in LP and MPS formats, either in uncompressed (e.g., \texttt{*.lp}, \texttt{*.mps}) or compressed (e.g., \texttt{*.lp.gz}, \texttt{*.mps.zip}) form.
+
+\begin{itemize}
+    \item Gurobi, Python: use \texttt{read()} function
+    \item CPLEX, DOcplex: use \texttt{ModelReader} helper class
+    \item CPLEX, legacy Python: construct \texttt{Cplex} instance directly from filename
+    \item Gurobi, C++: construct \texttt{GRBModel} instance directly from filename
+    \item CPLEX, C++: use \texttt{importModel()} function of \texttt{IloCplex} instance to read model into an initialized \texttt{IloModel} instance
+\end{itemize}
+
+\red{\textbf{TODO: Links to Relevant Documentation}}
+
+\red{\textbf{TODO: Code Examples}}
+
+%\begin{itemize}
+%    \item Gurobi, Python: \texttt{from gurobipy import read; m = read('example.mps')}
+%    \item CPLEX, DOcplex: \texttt{from docplex.mp.model\ttul reader import ModelReader; mr = ModelReader(); m = mr.read\ttul model('example.mps')}
+%    \item CPLEX, legacy Python: \texttt{from cplex import Cplex; m = Cplex('example.mps')}
+%    \item Gurobi, C++: \texttt{GRBEnv env = GRBEnv(); GRBModel model = GRBModel(env, "example.mps");}
+%    \item CPLEX, C++: \texttt{IloEnv env; IloModel model(env); IloCplex cplex(env); cplex.importModel(model, "example.mps");}
+%\end{itemize}
+%\begin{tabular}{l|ll}
+%    & Python & C++ \\
+%    \hline
+%    Gurobi & \texttt{read('example.mps')} & \\
+%    CPLEX & \texttt{mr = ModelReader(); mr.read\ttul model('example.mps')} &
+%\end{tabular}
+
+\red{\textbf{TODO: Reading in parameter data from a file}}
+
+\subsection{Modifying the Model}
+All four APIs have some type of ``model'' object, which represents the problem at the modeling level (i.e., variables, constraints, objective function). Since the \emph{model} is built incrementally, it is straightforward to modify this representation depending on different parameters and arguments.
+
+For example, suppose the number of constraints you generate depends on some parameter; in this case, you can create a loop whose number of iterations depends on the parameter. For another example, suppose you want to enable/disable a particular set of constraints based on some condition; in this case, you can put the code that adds these constraints inside an if statement.
+
+\red{\textbf{TODO: Specific Commands}}
+
+\red{\textbf{TODO: Links to Relevant Documentation}}
+
+\red{\textbf{TODO: Code Examples}}
+
+\subsection{Modifying Solver Parameters}
+While MIP solvers provide the means to make more significant changes to the algorithm, here we talk about some of the simpler changes.
+
+\textbf{Solver Limits} refer to various solver parameters that limit the amount of system resources devoted to solving the problem. For example, if you are running many experiments you may want to limit the amount of time devoted to solving any one instance. Both Gurobi and CPLEX have various solver parameters that limit the amount of wall clock/system time used by the solver.
+
+For another example, if you are running experiments on a shared server, it is generally recommended that no one user uses all of the system's CPU cores. We can limit the number of CPU cores used by the solver by modifying the \texttt{threads} parameter.
+
+\textbf{Presolve} is a crucial part of modern MIP solvers; while many different procedures can be part of a presolve procedure, the overall effect they have can be summarized as \emph{taking the original problem and transforming it into a simpler problem}, whose optimal solution easily yields an optimal solution to the original problem.
+
+For users who are only interested in the solution of the problem, presolve is just another feature that improves solver performance. However, for users who want to analyze the relationship between the model (formulation) and the algorithm performance/behavior, presolve can obscure the relationship being studied since it changes the problem being solved. In this case, it may be desirable to disable presolve.
+
+\textbf{Numerical precision/tolerance} in general refers to how solvers handle the fact that computers do not represent real numbers to arbitrary accuracy by default. This matters, for example, when enforcing an integrality constraint; if the integer variable $x$'s current value is $4.0000000000000001$, it is hard to objectively determine whether the ``error'' is due to loss of precision or because the solution genuinely does not satisfy integrality.
+
+\subsubsection{Time Limits}
+Local time limits can be set easily. For global time limits (i.e., limit the amount of time the script runs, which may involve multiple solve calls), use a Timer object and adjust the individual local time limits according to it.
+
+\red{\textbf{TODO: Specific Commands}}
+%timeit in Python
+%threading.Timer in Python, chrono library in C++
+
+\red{\textbf{TODO: Links to Relevant Documentation}}
+
+\red{\textbf{TODO: Code Examples}}
+
+\subsection{Command Line Arguments}
+Simple command line arguments \texttt{sys.argv} in python and \texttt{int argc char* [] argv} arguments in C++. For more sophisticated argument parsing, it's helpful to use a library. For Python, the standard module \texttt{argparse} is helpful (see \url{https://docs.python.org/3/library/argparse.html} for details). For C++, there are no official options but \url{https://github.com/Taywee/args} is a header-only library that mimics the syntax of Python's \texttt{argparse}.
+
+\red{\textbf{TODO: Code Examples}}
+%Include code example.
+
+%\subsection{Modeling References}
+%Williams: Model Building in Mathematical Programming
+%Chen, Batson, Dang 2011: Applied Integer Programming: Modeling and Solution
+%McCarl and Spreen: Applied Mathematical Programming Using Algebraic Systems
+
+\end{document}

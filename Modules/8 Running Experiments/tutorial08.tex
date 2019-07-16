@@ -1,0 +1,208 @@
+\documentclass[12pt]{article}
+\usepackage{../tutorialsty}
+
+\usepackage[style=numeric, backend=biber, doi=false, url=false, isbn=false, eprint=false]{biblatex}
+\addbibresource{../references.bib}
+\usepackage[colorlinks=true,citecolor=magenta,urlcolor=blue]{hyperref}
+\urlstyle{sf}
+%\def\UrlBreaks{\do/\do.\do-}
+
+% For algorithms
+%\usepackage{algorithm,algorithmic}
+
+\begin{document}
+\title{Module 8}
+\author{Ryo Kimura}
+\date{}
+\maketitle
+
+\setcounter{section}{7}
+\section{Designing and Running Experiments}
+In this module, we will discuss how to design and run computational experiments that provide meaningful results and data suitable for analysis.
+
+\subsection{Why Do Computational Experiments?}
+Computational experiments are not the only method for evaluating algorithm performance; in particular, \emph{theoretical analyses} often provide deep and powerful insights about the fundamental limits and nature of broad classes of algorithms that can often be extended and generalized beyond a single algorithm or a single problem instance.
+
+However, relying solely on theoretical analysis can paint a misleading picture of algorithm performance. For example, the simplex algorithm for linear programming has exponential worst case running time \cite{klee1970good} but often performs well in practice, while Robertson and Seymour's polytime algorithm for detecting graph minors \cite{robertson1995graph,robertson2004graph} is completely impractical due to a hidden constant on the order of $10^{150}$. Furthermore, many heuristic methods (e.g., simulated annealing, tabu search) and widely used policies (e.g., join-shortest-queue scheduling) cannot be analyzed theoretically, and thus computational experiments must be used to perform principled analyses of their performance. Finally, computational experiments provide the most direct evidence for justifying performance of the algorithm in practice, especially when test instances with realistic parameters are used.
+
+\subsection{Designing Computational Experiments}
+(This section is based on sections 8.1 and 8.2 of \cite{muller2010algeng}.)
+
+There are three main questions to consider when designing computational experiments: 
+\begin{enumerate}
+    \item \textbf{What are the goals of the experiment?}
+    \item \textbf{What factors do we want explore?}
+    \item \textbf{How should we measure performance?}
+\end{enumerate}
+\subsubsection{Defining Goals}
+Computational experiments should always be designed so that they are able to satisfy the goals of conducting the experiment. \textbf{Choosing an appropriate research goal/hypothesis is the most important aspect of desigining computational experiments.} Common goals include:
+\begin{itemize}
+    \item Proof-of-concept of a novel framework/methodology/model/algorithm
+    \item Analyzing an algorithm/problem's behavior to better understand it
+    \item Comparing the performance of competing algorithms
+    \item Showing the relevance of an algorithm for a specific application
+    \item Brute-force/numerical validation of a theoretical conjecture
+\end{itemize}
+It is important that the defined goals be \emph{testable} (i.e., Will running experiments answer the question?), \emph{significant} (i.e., Why should anyone care about the results?), and \emph{insightful} (i.e., What implications do the results have beyond the current experiment?).
+
+Alternatively, we may think about what \emph{hypothesis} we want to confirm/reject with the experiment. Some examples are:
+\begin{itemize}
+    \item ``VRP is easier to solve when the underlying graph has low tree-width.''
+    \item ``Branching rules that minimize the pseudocost result in smaller branch-and-bound trees.''
+    \item ``For stochastic LPs, an iterative method is better suited for larger problems, while a reformulation method is better suited for smaller problems.''
+\end{itemize}
+
+\subsubsection{Determining Factors}
+The \emph{factors} of a computational experiment are akin to independent variables in statistics and predictors/features in machine learning; that is, the goal of an experiment is to see how differences in experimental factors translate to differences in various performance metrics. The most common factors include:
+\begin{itemize}
+    \item \emph{Algorithm parameters} (e.g., maximum number of cuts/iterations, target error/approximation ratio, branching/node selection rules, etc.)
+    \item \emph{Instance size} (e.g., number of customers/items/jobs/etc.)
+    \item \emph{Instance characteristics} (e.g., tree-width of a graph, number of nonzero entries, etc.)
+\end{itemize}
+We also need to define \emph{levels} for each factor in order to test the effect of differences (e.g., big/medium/small instances, $\alpha = 0.01, 0.1, 0.5$, etc.).
+
+\subsubsection{Choosing Performance Metrics}
+The most common performance metrics in use are \emph{total running time}, \emph{space consumption}, and \emph{solution quality}, since they are often the most relevant in practice. However, focusing solely on these metrics can lead to an overly \emph{competitive} approach to computational testing, an approach that was once common in research on heuristic algorithms (in the 1990s) and has since been criticized \cite{hooker1995testing,sorensen2015metaheuristics} for producing papers of dubious scientific quality contributing little to the general theory of heuristics.
+
+Some other classes of performance metrics of potential interest include:
+\begin{itemize}
+    \item \emph{Extensions of running time} (e.g., time to find a feasible solution, time to certify optimality, total time spent running heuristic/subproblem, minimum/average/maximum amount of time spent on one iteration)
+    \item \emph{Structural measures} (e.g., number of nodes in branch-and-bound tree, number of iterations, number of memory references)
+    \item \emph{Bottleneck operation counts} (e.g., number of oracle calls, number of subproblems solved, number of cuts generated)
+    \item \emph{Meta-metrics} (e.g., robustness of algorithm, ease of implementation)
+\end{itemize}
+As with factors, performance metrics should be chosen to best illustrate the goal of the experiment.
+
+\subsection{Running Computational Experiments}
+\subsubsection{Advice from the Literature}
+The following is some advice from the literature on running computational experiments:
+\paragraph{Johnson, ``A theoretician's guide to the experimental analysis of algorithms'' \cite{johnson2002theoretician}:}
+\begin{itemize}
+    \item \emph{Perform newsworthy experiments.}
+        \begin{itemize}
+            \item \textbf{Think before you compute.}
+            \item Don't over-analyze the results of one or two instances. It's better to test a variety of instances in a systematic way.
+            \item \textbf{Don't run full experiments until you've (a) confirmed that your implementation is correct, (b) finished making your implementation efficient, and (c) decided what data to collect.} Otherwise, you will have to re-run the experiments, resulting in a huge waste of time.
+            \item Use ``exploratory experimentation'' to find good questions, but don't get stuck in an endless loop.
+        \end{itemize}
+    \item \emph{Tie your paper to the literature.}
+        \begin{itemize}
+            \item \textbf{Do your homework. Know what is the state-of-the-art.} What has already been done, what is still unknown, what is missing from the literature?
+            \item Make comparisons to previous experiments. What is the ``standard'' approach? Are there similar or alternative approaches?
+            \item Don't waste your time comparing with ``dominated algorithms'', unless that's the point (e.g., popular algorithm A is actually really bad at problem X).
+        \end{itemize}
+    \item \emph{Use instance testbeds that can support general conclusions.}
+        \begin{itemize}
+            \item Don't use unstructured random instances. It's hard to generalize the results.
+            \item Don't only run experiments on easy test instances (e.g., solve in less than second, have already been solved).  The algorithm may perform differently on hard instances.
+            \item Don't only run experiments on test instances that are favorable for your algorithm.  The algorithm may perform differently on other types of instances.
+            \item \textbf{In general, aim for a healthy range/variety of test instances.}
+        \end{itemize}
+    \item \emph{Use efficient and effective experimental designs.}
+        \begin{itemize}
+            \item Use variance reduction techniques (e.g., common random numbers, control variates, batch means \cite{mcgeoch1992analyzing, fishman1997implementation}) when investigating the average performance of an algorithm.
+            \item Use self-documenting programs.
+        \end{itemize}
+    \item \textbf{\emph{Use reasonably efficient implementations.}}
+        \begin{itemize}
+            \item \textbf{Make fair comparisons with existing approaches.} E.g., exact algorithms, approximation methods, and heuristics are all designed with different tradeoffs in mind.
+            \item Inadequate programming time/ability is NOT an excuse.
+            \item That being said, avoid too much code tuning (unless, of course, that is specifically what you are testing).
+        \end{itemize}
+    \item \emph{Ensure reproducibility.}
+        \begin{itemize}
+            \item \textbf{Make sure the code you implement matches the paper's description of it.}
+            \item Ensure your reported performance metrics are reproducible.
+            \item Don't use running time as a stopping criterion (e.g., stop the algorithm after one hour); it's not reproducible since different machines have different speeds. Use combinatorial limits instead (e.g., limit on number of nodes in branch-and-bound tree; limit on number of constraint failures).
+            \item Don't use parameters that aren't known in practice (e.g., optimal value of a problem, modulus of strong convexity) for tuning; only use them for evaluation.
+            \item Algorithm parameters should be tuned systematically, not by hand.
+            \item Don't base all of your analysis on a single run.
+            %\item Take care when reporting results for algorithms that ``do m runs and take the best of k'' \textbf{Don't use the best result found as an evaluation criterion.} Instead, report results using bootstrapping approaches.
+        \end{itemize}
+    \item \emph{Ensure comparability.}
+        \begin{itemize}
+            \item \textbf{Report environmental details (e.g., software versions, processor speed, amount of memory, number of CPU cores)}
+            \item Ensure test instances used are available.
+            \item Backup everything you need to reproduce the experiment (especially test instances, source code, and input data), so you can provide it when you're asked for it later.
+        \end{itemize}
+\end{itemize}
+
+\paragraph{Journal of Heuristics Policies on Heuristic Search Research \cite{JOHpolicies}:}
+\begin{itemize}
+    \item \textbf{If an experiment shows that a procedure performs better than its competitors, it must provide \emph{insight} as to \emph{why} it performs so well.}
+    \item \textbf{Customized methods should always be compared with general-purpose, ``off-the-shelf'' optimizers.}
+    \item Statements about performance should be backed up by statistically valid experiments \cite{coffin2000statistical}.
+    \item Procedures that require parameter tuning must (a) separate tuning data from testing data, and (b) demonstrate generalizability (i.e., in machine learning terms, \textbf{training data should be separate from testing data}, and the model should avoid overfitting).
+\end{itemize}
+
+\paragraph{M{\"u}ller-Hannemann and Schirra, \emph{Algorithm Engineering}, Section 8.5 \cite{muller2010algeng}:}
+\begin{itemize}
+    \item Use reasonably efficient implementations
+    \item \textbf{Check your input data}
+    \item \textbf{When in doubt, record it (logging/output)}
+    \item Use version control software
+    \item Use scripting to automate repetitive tasks
+    \item Keep notes on experiment details
+    \item Change only one thing at a time
+    \item Run it often enough and with appropriate data sets
+    \item \textbf{Check that the output/results make sense}
+    \item Do unusual things, test the trivial/extreme/corner cases
+    \item Set appropriate time/resource limits
+\end{itemize}
+
+% Journal of Heuristics Testing Guidelines - clear, short recommendations
+%Hooker, Testing Heuristics We Have It All Wrong (1995): influential paper on metaheuristics testing
+%Barr et al, Designing and reporting on computational experiments with heuristic methods (1995): broader overview from same issue of same journal as Hooker95
+%Johnson, A Theoretician's Guide to the Experimental Analysis of Algorithms - lots of good advice
+%McGeoch, Experimental Analysis of Algorithms - a systematic treatment of "experimental algorithmics"
+%Coffin and Saltzman, Statistical Analysis of Computational Tests of Algorithms and Heuristics
+% (specifically comparing testing performance of MIP solvers) -- Koch, Martin, Pfetsch, Progress in Academic Computational Integer Programming
+
+%Sorenson - fun read but in essence is a survey/opinion paper
+%Greenberg, Computational testing: why, how, and how much - short, Barr is more relevant and detailed
+%Ahuja, Testing of Algorithms - specific example of using operation counts
+
+\subsubsection{Getting/Recording Solver Information}
+Information about code that we have written is easy to record because we have full control over the process. However, to record information related to the MIP solver we need to use functions from the corresonding API.
+\begin{itemize}
+    \item \textbf{Gurobi}: Most information can be accessed through \emph{Attributes}, which are associated to the relevant objects; for example, the number of nodes in the branch-and-bound tree can be obtained via the \texttt{NodeCount} attribute of \texttt{Model} objects:
+        \begin{itemize}
+            \item \textbf{Python}: if \texttt{m} is a \texttt{Model} object (e.g., \texttt{m = Model("myModel")}), then we can access its \texttt{NodeCount} attribute via
+\begin{verbatim}
+m.getAttr(GRB.Attr.NodeCount)
+m.NodeCount
+\end{verbatim}
+                Note that object attributes in Gurobi's Python interface do not distinguish case, so \texttt{m.nodecount} also works (but \texttt{m.getAttr(GRB.Attr.nodecount)} does NOT work.)
+            \item \textbf{C++}: if \texttt{m} is a \texttt{GRBModel} object (e.g., \texttt{GRBModel m = GRBModel(env);}), then we can access its \texttt{NodeCount} attribute (which is a double attribute) via
+\begin{verbatim}
+m.get(GRB_DoubleAttr_NodeCount);
+\end{verbatim}
+        \end{itemize}
+        See \url{http://www.gurobi.com/documentation/current/refman/attributes.html} for a list of the different attributes with short descriptions.  See \url{http://www.gurobi.com/documentation/current/refman/attribute_examples.html} for more details on how to access attributes.
+    \item \textbf{CPLEX}:
+        \begin{itemize}
+            \item \textbf{DOcplex}:
+\begin{verbatim}
+\end{verbatim}
+            \item \textbf{Legacy Python}:
+                If \texttt{c} is a \texttt{cplex} instance (i.e., \texttt{c = Cplex()}), then
+\begin{verbatim}
+c.solution.progress.get_num_nodes_processed()
+\end{verbatim}
+            \item \textbf{C++}: Use getter methods of the objects. Most information that is not associated with a specific variable (\texttt{IloIntVar}) or constraint (\texttt{IloConstraint}) is associated with the \texttt{IloCplex} instance. If \texttt{cplex} is an \texttt{IloCplex} instance associated with an \texttt{IloModel} object \texttt{model} (e.g., \texttt{IloModel model = IloModel(); IloCplex cplex(model)}), then
+\begin{verbatim}
+cplex.getNnodes();
+\end{verbatim}
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{Getting Optimization Status}
+
+
+\subsubsection{Measuing runtime}
+\subsubsection{Using scripts}
+\subsubsection{Recording output}
+
+\printbibliography
+
+\end{document}

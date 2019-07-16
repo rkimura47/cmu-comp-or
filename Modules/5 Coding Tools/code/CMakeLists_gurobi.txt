@@ -1,0 +1,23 @@
+# Set up project and targets
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+project(myproject LANGUAGES CXX)
+add_executable(mytarget "source.cpp")
+
+# Tell CMake where Gurobi is installed
+set(CMAKE_PREFIX_PATH "$ENV{GUROBI_HOME}")
+
+# Find libraries and includes
+find_library(GRBCXX_LIB "gurobi_g++5.2")
+find_library(GRBCORE_LIB "gurobi81")
+
+find_path(GRB_INC "gurobi_c++.h")
+
+# Configure targets
+set_target_properties(mytarget PROPERTIES
+  CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
+target_link_libraries(mytarget PRIVATE ${GRBCXX_LIB} ${GRBCORE_LIB} m)
+target_include_directories(mytarget PRIVATE ${GRB_INC})
+target_compile_options(mytarget PRIVATE "-m64")

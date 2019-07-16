@@ -1,0 +1,286 @@
+\documentclass[12pt]{article}
+\usepackage{../tutorialsty}
+
+\usepackage[style=numeric, backend=biber, doi=false, url=false, isbn=false, eprint=false]{biblatex}
+\addbibresource{../references.bib}
+\usepackage[colorlinks=true,urlcolor=blue]{hyperref}
+\urlstyle{sf}
+\def\UrlBreaks{\do/\do.\do-}
+\usepackage{minted}
+
+% Set compile targets to ':TTarget = dvishell' or ':TTarget = pdfshell'
+
+% With vim-latex, add the following to ~/vimfiles/ftplugin/tex.vim
+%
+%" Alternative targets that allow shell escape
+%let g:Tex_CompileRule_dvishell = 'latex -shell-escape -interaction=nonstopmode -src-specials $*'
+%let g:Tex_ViewRuleComplete_dvishell = 'start yap -1 $*.dvi'
+%let g:Tex_CompileRule_pdfshell = 'pdflatex -shell-escape -interaction=nonstopmode -src-specials -synctex=-1 $*'
+%let g:Tex_ViewRuleComplete_pdfshell = 'start C:\Program Files (x86)\SumatraPDF\SumatraPDF -reuse-instance -inverse-search "gvim -c \":RemoteOpen +\%l \%f\"" $*.pdf'
+%
+% and whenever compiling, run ':TTarget = dvishell' or ':TTarget = pdfshell'
+
+\begin{document}
+\title{Module 3}
+\author{Ryo Kimura}
+%\date{}
+\maketitle
+
+%
+% Minimal minted example
+%
+%\begin{minted}{python}
+%import numpy as np
+%
+%def comeon(k):
+%    return k + 1
+%
+%def helloworld(n):
+%    print('Hello World')
+%
+%for i in range(5):
+%    MDDNode(5, 2, 3).add(x, 44)
+%\end{minted}
+
+\setcounter{section}{2}
+\section{Basic Modeling}
+In this module we will briefly review the fundamentals of MIP models, and provide examples of how to implement them using Gurobi and CPLEX.
+
+\paragraph{NOTE} From this point forward, we will assume that your primary programming environment is \textbf{Ubuntu Linux}; if you are using a different programming environment, you will need to determine what changes are necessary in order to make it run. If you have trouble, you can contact the instructor for advice on what changes to make.
+
+On the other hand, we will still cover how to model things using both Gurobi and CPLEX, via both Python and C++.
+
+\subsection{IP Review}
+A mixed integer programming (MIP) model is defined by the following characteristics:
+\begin{itemize}
+    \item Linear objective function
+    \item Affine inequality constraints
+    \item Integrality constraints
+\end{itemize}
+
+A simple example of a MIP model is the \emph{0-1 knapsack problem}. We have $n$ different objects, each with a \emph{value} $c_j$ and a \emph{weight} $a_j$, and a knapsack with total capacity $b$. Our goal is to determine which objects to put in our knapsack so that we maximize their total value, subject to the constraint that the total weight of our objects does not exceed the capacity of the knapsack. Let $x_j = 1$ if object $j$ is included in our knapsack and $0$ otherwise. Then we can represent our problem as:
+\begin{equation*}
+\begin{array}{rrclcl}
+    \displaystyle \max_x & \multicolumn{3}{l}{\displaystyle \sum_{j=1}^n c_j x_j} \\
+    \textrm{s.t.} & \displaystyle \sum_{j=1}^n a_j x_j & \le & b \\
+    & x_j & \in & \{0, 1\} && \forall j = 1, \dots, n
+\end{array}
+\end{equation*}
+where the domain constraint $x_j \in \{0,1\}$ is implicitly represented as the combination of the affine inequality constraints $0 \le x_j \le 1$ and the integrality constraint $x_j \in \mathbb{Z}$.
+
+A more involved example of a MIP model is the following \emph{single machine scheduling problem with weighted tardiness objective}. We have $n$ jobs that need to be run on some machine. Each job has the following attributes:
+\begin{enumerate}
+    \item \textbf{weight} $w_j$: how important the job is,
+    \item \textbf{duration} $p_j$: how long it takes to execute the job, and
+    \item \textbf{deadline} $d_j$: the time by which we want to complete the job.
+\end{enumerate}
+Thus, if we start executing job $j$ at \textbf{start time} $S_j$, we will finish executing the job at its \textbf{completion time} $C_j \defeq S_j + p_j$. In this case, the \textbf{tardiness} of job $j$ is defined to be
+\[T_j \defeq \max\{C_j - d_j, 0\},\]
+i.e., it is $0$ if job $j$ finishes on time, and otherwise is the difference between the completion time and deadline of job $j$. Our goal is to minimize the weighted sum of tardiness over all jobs (i.e., $\min \sum_{j \in \mathcal{J}} w_j T_j$), subject to the constraints that we can only run one job at a time (since we only have one machine), and the earliest we can start running jobs is at time $0$.
+
+We can model this problem as a MIP as follows: let $x_{ij} = 1$ if job $i$ is executed before job $j$ and $0$ if job $j$ is executed before job $i$. Let $M \defeq \sum_j p_j$ so that $C_j - M \le 0$ for any reasonable completion time for any job $j$. Then we can represent our problem as
+\begin{equation*}
+\begin{array}{rrclcl}
+    \displaystyle \min_{S, T, x} & \multicolumn{3}{l}{\displaystyle \sum_{j \in \mathcal{J}} w_j T_j} \\
+    \textrm{s.t.} & S_j & \ge & S_i + p_i - M(1 - x_{ij}) && \forall (i, j) \in \operatorname{Pairs}(\mathcal{J}) \\
+    & S_i & \ge & S_j + p_j - Mx_{ij} && \forall (i, j) \in \operatorname{Pairs}(\mathcal{J}) \\
+    & T_j & \ge & S_j + p_j - d_j && \forall j \in \mathcal{J} \\
+    & x_{ij} & \in & \{0,1\} && \forall (i,j) \in \operatorname{Pairs}(\mathcal{J}) \\
+    & S_j, T_j & \ge & 0 && \forall j \in \mathcal{J}
+\end{array}
+\end{equation*}
+where $\mathcal{J} = \{1, \dots, n\}$ is the set of $n$ jobs and $\operatorname{Pairs}(\mathcal{J}) = \{(i,j) \in \mathcal{J} \times \mathcal{J} \mid i < j\}$ is the set of all pairs of jobs in $\mathcal{J}$.
+
+It is helpful to think of a MIP model as being made up of four elements: \emph{parameters}, \emph{variables}, the \emph{objective function}, and \emph{constraints}. In the previous model, these elements were:
+\begin{itemize}
+    \item \emph{Parameters}: $w_j$, $p_j$, $d_j$, which are defined in the problem, and $M$, a \emph{big-M} parameter calculated based on $p_j$; note that parameters are \textbf{constant w.r.t.~the variables} (e.g., the value of $M$ does not depend on the value of $x_{ij}$, $S_j$, or $T_j$)
+    \item \emph{Variables}: $x_{ij}$, which are \emph{integer} (in particular, \emph{binary}) variables, and $S_j$ and $T_j$, which are (nonnegative) \emph{continuous} variables
+    \item \emph{Objective Function}: $\sum_{j \in \mathcal{J}} w_j T_j$, which is a linear function in the variable $T_j$
+    \item \emph{Constraints}: everything else, e.g., $S_j \ge S_i + p_i - M(1 - x_{ij})$, which is an inequality constraint involving the variables $S_i$, $S_j$, and $x_{ij}$
+\end{itemize}
+
+Modern MIP solvers like Gurobi and CPLEX use a combination of \emph{branch-and-bound}, general purpose \emph{cutting planes}, \emph{primal heuristics}, and \emph{presolve reductions}, among other things, to solve MIPs. Later in the course, we will discuss how to manipulate these solver features; for now, it suffices to note that modern MIP solvers can often find the optimal solutions to MIPs of moderate size in a reasonable amount of time.
+
+
+
+\subsection{Gurobi Example (Python)}
+We will use Example 3.6.3 from \cite{pinedo2012scheduling}, which uses the last MIP model we discussed, as our running example. We can use Gurobi's Python API to implement this MIP model. The basic structure of such a program consists of the following steps:
+\begin{enumerate}
+    \item \textbf{Specify which interpreter to use} (line 1): Specify the path to the Python interpreter that will be used to run this program.
+    \item \textbf{Import the gurobipy package} (line 2): Import functions from the \texttt{gurobipy} package we will use to model our problem.
+    \item \textbf{Set up the problem parameters} (lines 6-12): Defining and populating data structures containing parameter data makes it easier to refer to them later on when we specify the model. \emph{Lists} and \emph{dicts} are especially recommended due to their flexibility.
+    \item \textbf{Set up the model} (lines 15-37): Create a \texttt{Model} object and add variables, constraints, and an objective function to it.
+    \item \textbf{Solve the model} (lines 39-44): Use \texttt{model.optimize()} to solve the model, and re-solve it if we end with ambiguous solver status.
+    \item \textbf{Display the solution} (lines 46-53): Report optimal solution if one was found
+\end{enumerate}
+In addition, our program also features:
+\begin{enumerate}
+    \item \textbf{Status descriptions} (line 3): Define a dict mapping status enums (i.e., integers) to more human-readable strings.
+    \item \textbf{Script function} (lines 5, 58, 59): Define primary code as a function, then call it from ``main'' function. This makes it easier to test/parameterize our code later on.
+    \item \textbf{Exception Handling} (lines 14, 55, 56): Use a \texttt{try-catch} block to handle solver errors.
+\end{enumerate}
+
+Here is the full Python code for our model. The program can also be found on Canvas with some of the lines adjusted. See the \texttt{examples/python} directory of the Gurobi distribution for more Python examples distributed by Gurobi, and see \url{http://www.gurobi.com/documentation/8.1/refman/py_python_api_details.html} for details on the Python API.
+\inputminted[fontsize=\small,linenos]{python}{code/shortlines/TWTgurobi.py}
+
+\subsection{CPLEX Example (Python)}
+We will implement the same example using CPLEX's DOcplex Python API. The basic structure of this program is similar to our last model:
+\begin{enumerate}
+    \item \textbf{Specify which interpreter to use} (line 1): Specify the path to the Python interpreter that will be used to run this program.
+    \item \textbf{Import the docplex/docloud package} (lines 2-3): Import functions from the \texttt{docplex} and \texttt{docloud} packages we will use to model our problem.
+    \item \textbf{Set up the problem parameters} (lines 6-12): Defining and populating data structures containing parameter data makes it easier to refer to them later on when we specify the model. \emph{Lists} and \emph{dicts} are especially recommended due to their flexibility.
+    \item \textbf{Set up the model} (lines 15-34): Create a \texttt{Model} object and add variables, constraints, and an objective function to it.
+    \item \textbf{Solve the model} (lines 36-42): Use \texttt{model.solve()} to solve the model, and re-solve it if we end with ambiguous solver status.
+    \item \textbf{Display the solution} (lines 44-51): Report optimal solution if one was found
+\end{enumerate}
+In addition, our program also features:
+\begin{enumerate}
+    \item \textbf{Context Management} (line 15): using \texttt{with} means that the \texttt{Model} object is automatically deleted when its corresponding code block finishes execution
+    \item \textbf{Script function} (lines 5,53,54): Define primary code as a function, then call it from ``main'' function. This makes it easier to test/parameterize our code later on.
+\end{enumerate}
+
+Here is the full Python code for our model. The program can also be found on Canvas with some of the lines adjusted. See the \texttt{python/examples/mp/modeling} directory of the CPLEX distribution for more Python examples distributed by CPLEX, and see \url{http://ibmdecisionoptimization.github.io/docplex-doc/mp/refman.html} for details on the DOcplex API.
+\inputminted[fontsize=\small,linenos]{python}{code/shortlines/TWTdocplex.py}
+% Link to legacy Python API docs
+%\url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refpythoncplex/html/cplex._internal._subinterfaces-module.html}
+
+
+\subsection{Gurobi Example (C++)}
+We will implement the same example using Gurobi's C++ API. The basic structure is similar:
+\begin{enumerate}
+    \item \textbf{Include relevant libraries} (lines 1-7): Specify libraries that we will use, including the Gurobi C++ API.
+    \item \textbf{Set up the problem parameters} (lines 15-24): We primarily use \texttt{const std::array} due to its standardized design.
+    \item \textbf{Set up the model} (lines 26-93): Construct the \texttt{Model} object. We use \texttt{std::ostringstream} throughout to construct the name strings.
+        \begin{enumerate}
+            \item \textbf{Create model} (lines 26-29)
+            \item \textbf{Add variables} (lines 31-61): We use \texttt{emplace}, \texttt{reserve}, and \texttt{emplace\ttul back} to efficiently store variables that can later be retrieved by index.
+            \item \textbf{Set objective function} (lines 63-69)
+            \item \textbf{Add constraints} (lines 71-93): We use a range-based for loop to iterate over the elements of \texttt{GRBVarPairMap}.
+        \end{enumerate}
+    \item \textbf{Solve the model} (lines 95-101): Use \texttt{model.optimize()} to solve the model, and re-solve it if we end with ambiguous solver status.
+    \item \textbf{Display the solution} (lines 103-120): Report optimal solution if one was found, and solver status otherwise
+\end{enumerate}
+In addition, our program also features:
+\begin{enumerate}
+    \item \textbf{Typedefs} (lines 8-9): We use \emph{typedefs} to assign convenient names to our template classes.
+        \begin{enumerate}
+            \item \textbf{Map Template} (line 8): We use the \texttt{std::map} template to define a data structure that uses a key-value representation rather than a matrix-based reprsentation.
+            \item \textbf{Smart Pointer} (line 9): We use the \texttt{std::unique\ttul ptr} template to automatically handle the dynamic memory allocation of \texttt{GRBVar[]}
+        \end{enumerate}
+    \item \textbf{Exception Handling} (lines 13-14, 121-130): Use a \texttt{try-catch} block to handle solver errors.
+\end{enumerate}
+Here is the full C++ code for our model. The program can also be found on Canvas with some of the lines adjusted. See the \texttt{examples/cpp} directory of the Gurobi distribution for more C++ examples distributed by Gurobi, and see \url{http://www.gurobi.com/documentation/current/refman/cpp_api_details.html} for details on the C++ API.
+\inputminted[fontsize=\small,linenos]{cpp}{code/shortlines/twtgurobi.cpp}
+
+\subsection{CPLEX Example (C++)}
+We will implement the same example using CPLEX's C++ API. The basic structure is similar:
+\begin{enumerate}
+    \item \textbf{Include relevant libraries} (lines 1-4): Specify libraries that we will use, including the CPLEX C++ API.
+    \item \textbf{Initialize environment} (line 9): The \texttt{IloEnv} object provides a platform-independent context for everything we do.
+    \item \textbf{Set up the problem parameters} (lines 12-17): Use CPLEX's types (\texttt{IloInt} $\equiv$ \texttt{int}, \texttt{IloNumArray} $\equiv$ \texttt{std::array<double,N>}) for more platform-independent code.
+    \item \textbf{Set up the model} (lines 19-68): Construct the \texttt{IloModel} object. Use \texttt{std::ostringstream} throughout to construct the name strings.
+        \begin{enumerate}
+            \item \textbf{Create model} (lines 19-20)
+            \item \textbf{Add variables} (lines 22-37): Use \texttt{emplace} to store variables in \texttt{IloBoolVarPairMap} that can later be retrieved by index.
+            \item \textbf{Set objective function} (lines 39-40)
+            \item \textbf{Add constraints} (lines 42-68): Use a range-based for loop to iterate over the elements of \texttt{GRBVarPairMap}.
+        \end{enumerate}
+    \item \textbf{Solve the model} (lines 70-77): Use \texttt{cplex.solve()} to solve the model, and re-solve it if we end with ambiguous solver status.
+    \item \textbf{Display the solution} (lines 79-99): Report optimal solution if one was found, and solver status otherwise
+    \item \textbf{End environment} (line 108)
+\end{enumerate}
+In addition, our program also features:
+\begin{enumerate}
+    \item \textbf{Typedef/Map Template} (line 5): Use \emph{typedefs} to assign a convenient name to the \texttt{std::map} template, which defines a data structure that uses a key-value representation rather than a matrix-based reprsentation.
+    \item \textbf{Exception Handling} (lines 10-11, 99-107): Use a \texttt{try-catch} block to handle solver errors.
+\end{enumerate}
+Here is the full C++ code for our model. The program can also be found on Canvas with some of the lines adjusted. See the \texttt{cplex/examples/src/cpp} directory of the CPLEX distribution for more C++ examples distributed by Gurobi, and see \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refcppcplex/html/overview.html?pos=2} for details on the C++ API.
+\inputminted[fontsize=\small,linenos]{cpp}{code/shortlines/twtcplex.cpp}
+
+\subsection{Optional Content}
+\subsubsection{Imports in Python}
+Imports in Python, while very flexible, can be the source of frustratingly obtuse errors. This section is meant to clarify some of the confusing elements of the Python import system. It's based on \emph{The Definitive Guide to Python import Statements} (\url{https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html}) by Chris Yeh.
+
+\paragraph{Modules, Packages, and Objects}
+First, it's useful to clarify the distinction between a \emph{module}, a \emph{package}, and a \emph{object}:
+\begin{itemize}
+    \item A \emph{module} is any \texttt{*.py} file. Its name is the file name.
+    \item A \emph{package} is any folder containing a file named \texttt{\ttul\ttul init\ttul\ttul.py} in it. Its name is the name of the folder.
+        \begin{itemize}
+            \item In Python 3.3 and above, any folder (even without a \texttt{\ttul\ttul init\ttul\ttul.py} file) is considered a package
+        \end{itemize}
+    \item An \emph{object} is pretty much anything in Python - functions, classes ,variables, etc.
+\end{itemize}
+Thus, a \emph{module} is a Python file that implements various \emph{objects}, while a \emph{package} is conceptually a collection of \emph{modules} bundled together for distribution. By default, an object defined in a module cannot be directly accessed from the package containing that module, unless the creator of the package makes it available via the package's \texttt{\ttul\ttul init\ttul\ttul.py} file.
+
+\paragraph{Where does Python look for modules/packages?}
+When a module named \texttt{spam} is imported, Python first searches for a \emph{built-in module} (i.e., a module that are compiled directly into the Python interpreter) with that name. If not found, it then searches for a file (i.e., module) named \texttt{spam.py} or a folder (i.e., package) named \texttt{spam} in a list of directories given by the variable \texttt{sys.path}. \texttt{sys.path} is initialized from various locations, including the directory containing the input script, \texttt{PYTHONPATH}, and the installation-dependent default.
+
+\paragraph{Using Objects from the Imported Module or Package}
+There are 4 different syntaxes for writing import statements. (Note that importing a package is conceptually the same as importing that package's \texttt{\ttul\ttul init\ttul\ttul.py} file.)
+\begin{enumerate}
+    \item \texttt{import <package>}
+    \item \texttt{import <module>}
+    \item \texttt{from <package> import <module or subpackage or object>}
+    \item \texttt{from <module> import <object>}
+\end{enumerate}
+
+Let \texttt{X} be whatever name comes after \texttt{import}:
+\begin{itemize}
+    \item If \texttt{X} is the name of a module or package, then to use objects defined in \texttt{X}, you have to write \texttt{X.object}.
+    \item If \texttt{X} is a variable name, then it can be used directly.
+    \item If \texttt{X} is a function name, then it can be invoked with \texttt{X()}.
+\end{itemize}
+Optionally, \texttt{as Y} can be added after any \texttt{import X} statement: \texttt{import X as Y}. This renames \texttt{X} to \texttt{Y} within the script. Note that the name \texttt{X} itself is no longer valid. A common example is \texttt{import numpy as np}.
+
+\paragraph{Examples}
+For Gurobi, \texttt{gurobipy} is a package which contains the object \texttt{Model}.
+\begin{itemize}
+    \item \textbf{Method 1}: \texttt{from gurobipy import Model}
+        \begin{itemize}
+            \item we can directly use the object by name: \texttt{m = Model()}
+        \end{itemize}
+    \item \textbf{Method 2}: \texttt{from gurobipy import *}
+        \begin{itemize}
+            \item we can directly use all objects defined in \texttt{gurobipy} by name; need to watch out for naming conflicts (e.g., you cannot have a variable called \texttt{Model} in your script!)
+        \end{itemize}
+    \item \textbf{Method 3}: \texttt{import gurobipy as grb}
+        \begin{itemize}
+            \item we have to prefix the object name with the (re-named) name of the module: \texttt{m = grb.Model()}
+        \end{itemize}
+\end{itemize}
+
+For CPLEX, \texttt{docplex} is a package, which contains the subpackage \texttt{mp}, which contains the module \texttt{model} which contains the object \texttt{Model}.
+\begin{itemize}
+    \item \textbf{Method 1}: \texttt{from docplex.mp.model import Model}
+        \begin{itemize}
+            \item we can directly use the object by name: \texttt{m = Model()}
+        \end{itemize}
+    \item \textbf{Method 2}: \texttt{from docplex.mp import model} or equivalently \texttt{import docplex.mp.model as model}
+        \begin{itemize}
+            \item we have to prefix the function name with the name of the module: \texttt{m = model.Model()}
+            \item This is sometimes preferred over the Method $1$ in order to make it explicit that we are using the \texttt{Model} object from the \texttt{model} module.
+        \end{itemize}
+    \item \textbf{Method 3}: \texttt{import docplex.mp.model}
+        \begin{itemize}
+            \item we need to use the full path: \texttt{m = docplex.mp.model.Model()}
+        \end{itemize}
+\end{itemize}
+%If using Python2, make sure module folder has an \texttt{\ttul\ttul init\ttul\ttul.py} file; otherwise Python2 will not recognize it as a module.
+%python trace module
+%python -m site shows you sys.path shows you all the places where Python looks for modules.
+%alternatively, run \verb+python -c "import sys; print('\n'.join(sys.path))"+
+%Yeh, C., \emph{The Definitive Guide to Python import Statements} (\url{https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html})
+
+\printbibliography
+
+
+
+
+%CPLEX only has builtin classes for vectors of variables and parameters (e.g., \texttt{IloNumVarArray}, \texttt{IloIntArray}). For higher-dimensional matrices, use the \texttt{IloArray} template class; e.g., a two dimensional matrix of boolean variables will have type \texttt{IloArray<IloBoolVarArray>}, a 3-dimensional matrix will have type \texttt{IloArray<IloArray<IloBoolVarArray> >}, and so on.
+
+%Vielma (2015): Mixed Integer Linear Programming Formulation Techniques
+
+%C++ stack reference
+%\url{https://carlosvin.github.io/posts/choosing-modern-cpp-stack/}
+\end{document}

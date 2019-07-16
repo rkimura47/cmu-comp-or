@@ -1,0 +1,204 @@
+\documentclass[12pt]{article}
+\usepackage{../tutorialsty}
+
+\usepackage[style=numeric, backend=biber, doi=false, url=false, isbn=false, eprint=false]{biblatex}
+\addbibresource{../references.bib}
+\usepackage[colorlinks=true,citecolor=magenta,urlcolor=blue]{hyperref}
+%\def\UrlBreaks{\do/\do.\do-\do_}
+\urlstyle{sf}
+\usepackage{minted}
+% Set compile targets to ':TTarget = dvishell' or ':TTarget = pdfshell'
+
+\begin{document}
+\title{Module 7}
+\author{Ryo Kimura}
+\date{}
+\maketitle
+
+\setcounter{section}{6}
+\section{Test Instances}
+In the next three modules, we will discuss the three major aspects of computational testing: choosing test instances, running experiments, and analyzing the result of experiments. In this module, we will discuss test instance selection in detail.
+
+% From Algorithm Engineering, 8.3 Test Data Generation
+\textbf{This module is based on Chapter 8.3 \emph{Test Data Generation} of \cite{muller2010algeng}; refer to the book for a more detailed discussion.}
+
+\subsection{What are Good Test Instances?}
+To obtain valid and reliable experimental data about the computational performance of an algorithm, methodology, framework, etc., we need specific \emph{test instances} with realistic parameter values. While the choice of test instances is inevitably influenced by time constraints, availability, convenience, etc., there are several considerations to keep in mind when choosing a set of test instances:
+\begin{itemize}
+    \item \textbf{Quantity / Purpose}: The \emph{quantity} and types of chosen test instances should always match the \emph{purpose} of the experiment.  For example, preliminary testing of an experimental algorithm may only require a few instances, while a systematic assessment of the strengths and weaknesses of a well-known heuristic requires a significantly larger number of instances.  Similarly, an experiment for demonstrating the flexibility of a generic solution framework should use a wide variety of test instances, while an experiment for highlighting the practicality of an algorithm should use many realistic test instances.
+
+        In practice, this means \textbf{clearly defining the purpose of the experiment} \emph{before} deciding on a set of test instances to use.
+    \item \textbf{Comparability / Reproducibility}: The results of algorithmic experiments should be \emph{comparable} to other experiments, and the test instances should be given in enough detail that another researcher could, at least in principle, \emph{reproduce} the results. This is important for the scientific integrity of the results, and aligns with the standards for rigorous empirical experimentation that is expected in other fields like the natural sciences.
+
+        In practice, this means using \textbf{test instances that have been used in prior and related works}, instances from a standard test data library, and/or giving detailed explanations for \textbf{how exactly the test instances were generated}.
+    \item \textbf{Portability}: Whenever possible, test instances should be \emph{portable} and accessible to any researcher who wants to use them. This is closely related to the previous issue since lack of portability hinders reproducibility and comparability greatly.
+
+        In practice, this means \textbf{avoiding proprietary instances if possible}, and storing \textbf{instance data in a format that is widely accepted} or easily understandable/parsable.
+    \item \textbf{Measurability}: There should be a way to \emph{measure} and quantify how good the algorithm performs on a specific instance in terms of the performance metrics of interest. Often there are other metrics besides the time and computational resources used that are important for assessing the performance of an algorithm; for example, for heuristic algorithms the \emph{optimality gap} (i.e., how far the generated solution is from an optimal solution) achieved may be of interest.
+
+        In practice, this means ensuring that the test instances used for the experiments are \textbf{capable of providing the performance metrics of interest} (e.g., we may not want to use instances for which the optimal value is not known if optimality gap is an important metric).
+    \item \textbf{Variety / Significance / Unbiasedness}: The test instances should include a \emph{variety} of instances in order to ensure the experiment produces \emph{significant}, meaningful results. For example, only using instances that are easy for the algorithm to solve will heavily \emph{bias} the results and conclusions, and they tell us nothing about the limits of the algorithm, cases where the algorithm fails, and the effect of different problem characteristics on algorithm performance.
+
+        In practice, this means ensuring the set of test instances is \textbf{chosen in a relatively unbiased manner} (e.g., standard test data libraries, random generation) and includes problems with \textbf{different problem characteristics}.
+\end{itemize}
+
+\subsection{Types of Test Instances}
+Broadly speaking, there are four types of test instances used in computational experiments: \textbf{real world instances}, \textbf{artificial instances}, and \textbf{perturbed instances}. We discuss each of these in terms of their advantages and disadvantages relative to the considerations discussed in the previous section.
+
+\subsubsection{Real World Instances}
+Real-world instances originate from real applications, and therefore reflect the ultimate \emph{purpose} of any tested algorithm. Since the goal of a computational experiment is often to evaluate practical usefulness, real-world instances provide valuable assessments of the performance of the algorithm in practice.
+
+On the other hand, some real-world instances are proprietary and not available for public use, hindering \emph{comparability} and \emph{portability}. In addition, it is often difficult or impossible to obtain a sufficient \emph{quantity} of instances, and real-world instances often have properties that are intrinsically tied to practical concerns, resulting in a lack of \emph{variety}.
+
+\subsubsection{Artificial Instances}
+Artificial instances are typically randomly generated by some systematic procedure according to a list of parameters.  Often this means that it is very easy to accumulate a very large \emph{quantity} of test instances, and depending on how well the generator program is written, can also produce a wide \emph{variety} of instances. Furthermore, if the generation process is well-documented, they provide an effective means to ensure \emph{reproducibility} and \emph{comparability} of the results.
+
+However, writing a good generator program can be quite difficult, and naive problem generation can produce instances that have \emph{biased} characteristics that do not reflect reality. For example, the well-cited paper \cite{mitchell1992hard} experimentally shows that hard SAT instances are characterized by the ratio of clauses-to-variables, rather than their size. Similarly, \cite{zhang2004phase} shows that when randomly generating instances of the asymmetric traveling salesman problem, if the number of distinct inter-city distances is fixed, the problems get \emph{easier} as they get bigger,\footnote{Intuitively, this is because the loewr bound obtained from the assignment relaxation gets tighter as the number of cities increases.}  While there is some work \cite{smith2015generating} that considers generic schemes of hard instance generation,\footnote{The main idea here is to use PCA to generate an \emph{instance space} that characterizes instance based on their difficulty, then use genetic algorithms to generate instances that ``fill in '' prominent gaps in the instance space.} generating realistic instances remains difficut in general.
+
+
+\subsubsection{Perturbed Instances}
+Perturbed instances start with a real world instance and modify it in a controlled way using a generator program. They attempt to combine the advantages of both real world and artificial instances by enabling the generation of larger \emph{quantities} of instances while maintaining \emph{realistic} problem characteristics. This puts perturbed instances somewhere between real world instances and artificial instances in terms of realism.
+
+However, it is often difficult to identify interesting parameters that have to be changed in order to obtain useful perturbed instances. Furthermore, the size and structure of the perturbed instances is often not much different from the original instance, which imposes a limit on the potential \emph{variety} that is possible with this method.
+
+In short, the different types of instances can be summarized in table \ref{tab:test-instance-types}.
+
+\begin{table}
+\begin{tabular}{cll}
+    \hline \hline
+    & \emph{Advantages} & \emph{Disadvantages} \\
+    \hline \hline
+    \textbf{Real World} &
+    \begin{tabular}{p{0.35\linewidth}}
+        - representative of real world behavior (\emph{purpose}) \\
+        - allow assessment of practical usefulness
+    \end{tabular} &
+    \begin{tabular}{p{0.35\linewidth}}
+        - only of bounded size (\emph{variety}) \\
+        - only few available (\emph{quantity}) \\
+        - sometimes proprietary (\emph{comparability}) \\
+        - lack of control of characteristics
+    \end{tabular} \\
+    \hline
+    \textbf{Artificial} &
+    \begin{tabular}{p{0.35\linewidth}}
+        - arbitrary size available (\emph{variety}) \\
+        - arbitrary number available (\emph{quantity}) \\
+        - rarely proprietary (\emph{comparability}) \\
+        - ability to control characteristics
+    \end{tabular} &
+    \begin{tabular}{p{0.35\linewidth}}
+        - lack of realism (\emph{purpose}) \\
+        - difficult to assess real world performance (\emph{purpose}) \\
+        - susceptible to uninteded correlations and biases (\emph{unbiasedness})
+    \end{tabular} \\
+    \hline
+    \textbf{Perturbed} &
+    \begin{tabular}{p{0.35\linewidth}}
+        - better \emph{quantity} than real world instances \\
+        - more realistic than artificial instances
+    \end{tabular} &
+    \begin{tabular}{p{0.35\linewidth}}
+        - \emph{variety} comparable to real world instances \\
+        - less realistic than real world instances \\
+        - often hard to identify meaningful perturbation
+    \end{tabular} \\
+    \hline
+\end{tabular}
+\caption{Comparison of Different Types of Test Instances}
+\label{tab:test-instance-types}
+\end{table}
+%\paragraph{Real World Instances}
+%\begin{itemize}
+%    \item \emph{Advantages}
+%        \begin{itemize}
+%            \item representative of real world behavior (\emph{purpose})
+%            \item allow assessment of practical usefulness
+%        \end{itemize}
+%    \item \emph{Disadvantages}
+%        \begin{itemize}
+%            \item only of bounded size (\emph{variety})
+%            \item only few available (\emph{quantity})
+%            \item sometimes proprietary (\emph{comparability})
+%            \item lack of control of characteristics
+%        \end{itemize}
+%\end{itemize}
+
+\subsection{Finding Real World Instances}
+The best sources of real world instances are from prior works in the literature that have considered similar problems. Many researchers are willing to share their test instances as long as it is not proprietary, or they use established sets of test instances which are referenced in their work and are often freely available. \textbf{Google Scholar} (\url{https://scholar.google.com/}) is especially helpful for finding potential test instances to use (and for conducting literature reviews more generally).
+
+Many instances are available in various test data libraries:
+\begin{itemize}
+    \item \textbf{OR-library} is a collection of test data sets for a wide variety of OR problems from corporate structuring to prize-collecting steiner tree to hybrid reentrant shop scheduling (\url{http://people.brunel.ac.uk/~mastjjb/jeb/info.html}).
+    \item \textbf{MIPLIB} is a large collection of real world instances of mixed integer programs. It is updated every few years, as of April 2019 the most current version is MIPLIB2017 (\url{https://miplib.zib.de/}).
+    \item \textbf{CSPLib} is a library of test problems for constraint solvers motivated by various areas including bioinformatics, Ramsey numbers, and ridesharing (\url{http://www.csplib.org/}).
+\end{itemize}
+Some problem specific libraries include:
+\begin{itemize}
+    \item \textbf{TSPLIB} and University of Waterloo's \textbf{TSP Test Data} for traveling salesman problems (\url{http://elib.zib.de/pub/mp-testdata/tsp/tsplib/tsplib.html}, \url{http://www.math.uwaterloo.ca/tsp/data/index.html})
+    \item \textbf{PSPLIB} for project scheduling problems (\url{http://www.om-db.wi.tum.de/psplib/})
+    \item \textbf{SATLIB} for satisfiability problems (\url{https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html})
+    \item \textbf{TPTP} for theorem provers (\url{http://www.tptp.org/}).
+\end{itemize}
+You may also get benchmark/test instances from challenge competitions:
+\begin{itemize}
+    \item \textbf{DIMACS Implementation Challenge} (\url{http://archive.dimacs.rutgers.edu/Challenges/})
+    \item \textbf{MiniZinc Challenge} (\url{https://www.minizinc.org/challenge.html}),
+    \item \textbf{SAT Challenge} (\url{https://www.satcompetition.org/})
+\end{itemize}
+Finally, if what you need is raw data rather than specific instances, the following links for finding datasets can be helpful:
+\begin{itemize}
+    \item \textbf{Awesome Public Datasets}: list of free publicly available datasets, categorized by topic (\url{https://github.com/awesomedata/awesome-public-datasets})
+    \item \textbf{Google Dataset Search}: like Google Scholar, but for datasets (\url{https://toolbox.google.com/datasetsearch})
+    \item \textbf{Machine Learning and AI: Find Datasets}: link page of dataset repositories, curated by Huajin Wang as part of CMU's Library Guides (\url{https://guides.library.cmu.edu/machine-learning/datasets})
+\end{itemize}
+
+\subsection{Data Wrangling}
+\emph{Data wrangling} refers to the process of transforming ``raw'' data into a form that is easier to use for various purposes, and is often a necessary step when using real world instances or external data sets. Broadly speaking, the process of data wrangling can be separated into three steps: \textbf{extract}, \textbf{transform}, and \textbf{load}.
+
+\subsubsection{Extract}
+\emph{Extraction} refers to the task of reading in the data from the source system.  If the data is in an established format like CSV or JSON, we can use pre-existing libraries and Python modules like \texttt{csv} and \texttt{json}. But sometimes, we need to implement a \emph{parsing} script to read in the data.
+
+In this case, the typical strategy is to read in the file one line at a time, where each line is split into \emph{tokens} (i.e., words in the line separated by whitespace (or some other character)) which are then stored in data structures. In Python, the code follows a pattern similar to:
+\begin{minted}{python}
+with open('filename.data') as fo:
+    for line in fo:
+        tokens = line.strip().split(' ')
+        # Do things with tokens
+\end{minted}
+while in C++, the code is similar to (after including \texttt{fstream} and \texttt{string} standard libraries);\footnote{Alternatively, you can work directly with the ifstream \texttt{fo}.}
+\begin{minted}{cpp}
+std::ifstream fo("filename.data");
+std::string line;
+while (std::getline(infile, line))
+{
+    std::istringstream ls(line);
+	// Do things with ls (e.g., int a; ls >> a)
+}
+\end{minted}
+Within a string, you can find the positions of characters with the \texttt{str.find} function (\url{https://docs.python.org/3/library/stdtypes.html#str.find}, \url{https://en.cppreference.com/w/cpp/string/basic_string/find}), and extract them as substrings.
+
+For particularly convoluted files, you may need to use \emph{regular expressions} (regexes) using Python's \texttt{re} module (\url{https://docs.python.org/3/library/re.html}) or C++'s \texttt{<regex>} library (\url{https://en.cppreference.com/w/cpp/header/regex}).\footnote{Python and C++'s implementations of regexes differ slightly; see \url{https://www.regular-expressions.info/refflavors.html} for a detailed comparison.} See \url{https://www.regular-expressions.info/quickstart.html} for a quick tutorial on regexes, and see \url{https://regex101.com/} for an online tool that helps you construct them.
+
+\subsubsection{Transform}
+\emph{Transformation} refers to modifying, correcting, and extrapolating from the data to make it more suitable for use. Some common tasks include:
+\begin{itemize}
+    \item Remove whitespace: Python's \texttt{str.strip} (\url{https://docs.python.org/3/library/stdtypes.html#str.strip}) and C++'s \texttt{remove\ttul if} (\url{https://en.cppreference.com/w/cpp/algorithm/remove}) function are helpful.
+	\item Select entries satisfying a condition: For Python, list comprehensions can be especially helpful here. For C++, we can iterate through the data structure and copy the relevant entries to a separate data structure.
+	\item Deal with missing data: Entries with missing data can either be removed or filled in, using various methods.
+\end{itemize}
+
+\subsubsection{Load}
+\emph{Loading} refers to saving the data in a structure that can be used easily by other programs and functions. This step may be implicit if we are immediately using the data after we have read it in. Otherwise, we need to choose a format to store the data in: CSV files are usually sufficient. Pythons' \texttt{str.format()} (\url{https://docs.python.org/3/library/stdtypes.html#str.format}) and C++'s \texttt{<<} operator are particularly useful here.
+
+\subsection{Generating Test Instances}
+Artificial instances are typically generated with scripts. Python is especially recommended since it is very easy to write a simple script but still has enough flexibility if you want to use a more sophisticated instance generation scheme. In general:
+\begin{enumerate}
+    \item Spend some time considering what your instance data format should be. If there is an established standard format, follow that. Otherwise, favor formats that are easier and more robust to parse than formats that are easier to read visually.
+    \item Try to name data files in a unique, consistent manner, preferably using only alphanumeric characters.
+    \item Ensure the test instances generated fit the purpose of the computational experiments. Do you cover a sufficiently wide range of instance sizes? Does the difficulty scale appropriately?
+\end{enumerate}
+
+\printbibliography
+
+\end{document}

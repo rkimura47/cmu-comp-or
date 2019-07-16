@@ -1,0 +1,316 @@
+\documentclass[12pt]{article}
+\RequirePackage{../tutorialsty}
+
+\usepackage[colorlinks=false,urlcolor=blue]{hyperref}
+\urlstyle{sf}
+\def\UrlBreaks{\do/\do.\do-}
+\usepackage[os=win,hyperrefcolorlinks]{menukeys}
+
+\begin{document}
+\title{Tutorial 1: Fundamentals}
+\author{Ryo Kimura}
+\maketitle
+
+\section{Fundamentals}
+In this module, we will briefly review the fundamental practical issues of coding at a high level. Depending on how much coding experience you have, some of the material in this module may seem obvious; in that case, feel free to skip over them. On the other hand, if you feel like you are lost and need more specific instructions, refer to the links in each section or ask a fellow classmate for help. The goal is to ensure everyone has a solid foundation from which we can start discussing the more specific details of performing computational experiments.
+
+\subsection{Programming Environment} \label{sec:progenv}
+In order to develop code, you need a programming environment from which you can write code and run it. Outside of code specific to certain applications and interpreters (e.g., MATLAB, Python), \textbf{most academic code is developed on Linux}, which is a free and open source operating system that is especially suited to programming. For this reason, \textbf{it is HIGHLY RECOMMENDED that you use a Linux system as your primary programming environment}.
+
+However, for Windows users it can be inconvenient to have a completely separate operating system just for programming. Fortunately, there are several ways of creating a virtual Linux system within a Windows host system.
+
+\subsubsection{Windows Subsystem for Linux (WSL)} \label{sec:wsl}
+The easiest way is to utilize an optional builtin feature of Windows 10: the Windows Subsystem for Linux (WSL). To set up the WSL, follow these steps:
+\begin{enumerate}
+    \item Go to \menu{\textbf{Control Panel} > \textbf{Programs and Features} > \textbf{Turn Windows features on or off}}, check \textbf{Windows Subsystem for Linux}, and hit \menu{\textbf{OK}}
+
+        (Alternatively, open PowerShell as an Adminstrator and run \texttt{Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux})
+    \item Restart your computer when prompted
+    \item Download and install a distro (e.g., \textbf{Ubuntu}) from Windows Store
+    \item Launch distro app; create a new user account and password by following prompts
+\end{enumerate}
+After doing this, you will have an application which, when launched, gives you command line access to a virtual Linux system.\footnote{You can also use GUI applications (e.g., web browsers and image viewers) by installing an X Client (e.g., VcXsrv) on your Windows system; in this case, you need to add \texttt{export DISPLAY=:0} to your \texttt{.bashrc} and make sure the X client is running on your Windows system.} See \url{https://docs.microsoft.com/en-us/windows/wsl/install-win10} for details.
+
+\subsubsection{Updating Packages}
+At this point, it is recommended that you bring your Linux system up-to-date with the latest packages using the distro's \emph{package manager}. For example, for Ubuntu/Debian this can be done with the following commands:
+\begin{verbatim}
+sudo apt-get update
+sudo apt-get dist-upgrade
+sudo apt-get autoremove
+\end{verbatim}
+The first command updates the local package database, the second command upgrades all packages, and the third command removes any packages that are no longer needed. See your distro's documentation for details.
+
+\subsubsection{Accessing Windows from within WSL}
+The Windows system can be accessed from within WSL via the \texttt{/mnt} directory. For example, \texttt{/mnt/c} in Linux corresponds to \texttt{C:\symbol{92}} in Windows, \texttt{/mnt/d/Users/alice} in Linux corresponds to \texttt{D:\symbol{92}Users\symbol{92}alice} in Windows, and so on. Using this, you can easily transfer files between the two systems (see the \texttt{cp} and \texttt{mv} commands in section \ref{sec:bashcmd}).\footnote{While it is technically possible to access the Linux system from Windows, it is \textbf{highly discouraged} due to how easily modifying Linux files from Windows can break the Linux system. However, if you absolutely must know, the Linux files are typically stored in the User's AppData directory.}
+
+\subsubsection{Alternatives to WSL}
+If you do not want to use WSL, Docker for Windows is a third-party alternative that also provides an isolated ``container'' that is platform-independent. However, it is a little more difficult to set up. See \url{https://docs.docker.com/docker-for-windows/install/} for more details.
+
+Another alternative is to use a \emph{virtual machine}, which allows you to simulate a virtual computer that you can then install an operating system on. Two applications that can do this are VMware Workstation Pro\footnote{Note, there are two versions of VMware Workstation: Pro (sometimes just called Workstation) and Workstation Player (somestimes just called Player). Workstation Pro is preferred since it allows you to run multiple sessions and has seamless host/guest file sharing and networking.} (available through \href{https://www.cmu.edu/computing/software}{CMU software}) and Virtualbox (free and open source). While these applications will allow you more flexibility (in particular, you can have a GUI desktop as opposed to just a command line), they are somewhat slower and use more memory compared to the previous options. See \url{https://www.cmu.edu/computing/software/all/vmware/index.html} and \url{https://www.virtualbox.org} for more details.
+
+
+
+\subsection{SSH/SFTP}
+\subsubsection{SSH}
+Depending on the project, you may need to access and work on a remote computer (as opposed to a local computer like your laptop). In this case you will need to use an \emph{SSH client}, which allows you to securely access a remote computer via a command line interface through the internet.\footnote{While rarely necessary, it is possible to use GUI applications through SSH by utilizing \emph{SSH tunneling}. X-Win 32 (available through CMU software if not already installed) is one terminal client that can be configured to do so.} While not all remote computers are servers, in this section we will use the term \emph{server} to refer to any remote computer that can be accessed via SSH.
+
+Before connecting to a server via SSH, you need to have a user account on the server you are trying to access. This is set up by whoever has admin access on that server (e.g., your advisor or your course instructor). To connect to the server via SSH, you need the \emph{host name} of the server, the \emph{user name} of your account, and your \emph{password}.
+
+\subsubsection{Potential Connection Issues}
+The first time you try to connect to the server, you may see a message that looks like this:
+\begin{verbatim}
+The authenticity of host 'sample.ssh.com' can't be established.
+ECDSA key fingerprint is 04:48:30:31:b0:f3:5a:9b:01:9d:b3:17:38:e2:b1:0c.
+Are you sure you want to continue connecting (yes/no)?
+\end{verbatim}
+This message is perfectly normal, and it's just asking you to double check that the host you are trying to connect to is legitimate (for security reasons). If you were given an ECDSA key fingerprint, check that they match before continuing. Otherwise, type/select \texttt{yes} to accept the authenticity of the remote host, and you will see the following message:
+\begin{verbatim}
+Warning: Permanently added 'sample.ssh.com' (DSA) to the list of known hosts.
+\end{verbatim}
+This just means that the server has been added to your list of known hosts, and SSH will not prompt you again to verify its authencity.
+
+On a different note, you may find that you can access the server when you are at CMU but not when you are at home. This is probably because the server is configured to only allow access from computers that are connected through CMU's network. If you want to access this server when you are not on CMU's network, you can use a \emph{VPN client} to remotely ``log in'' to CMU's network, allowing you to access the server. One option is \emph{Cisco AnyConnect Secure Mobility Client} (available through \href{https://www.cmu.edu/computing/software}{CMU software} if not already installed). To use, connect to \texttt{vpn.cmu.edu}, select the \textbf{General Resources VPN}, and type in your andrewid and password when prompted. If you see the application icon in the notification section with a lock on it, it means you have successfully connected via VPN and you should be able to access the server from home.
+
+\subsubsection{Using SSH via Linux Command Line}
+The `simplest' way to access a server through SSH is via the Linux command line, which you can do with the command \texttt{ssh [username]@[hostname]}. You will then enter your server password, and you will be connected. See \url{https://www.ssh.com/ssh/command} for details.
+
+\subsubsection{Using SSH via Tectia - SSH Terminal}
+A more convenient way is to use an SSH client, e.g., \emph{Tectia - SSH Terminal} (available through \href{https://www.cmu.edu/computing/software}{CMU software}). After installation, you can press ``Quick Connect'' to connect to SSH as we did above. You can also set up a \emph{profile}, which will save the username and hostname so you don't have to type it every time. To create a new profile follows these steps:
+\begin{enumerate}
+    \item Go to \menu{\textbf{Profiles} > \textbf{Add Profile\ldots}}
+    \item If not already showing, click on the \menu{\textbf{Connection}} tab
+    \item In \textbf{Profile name}, enter the name of the profile
+    \item In \textbf{Host name}, enter the hostname of the server
+    \item Select \textbf{Specify user name} in the \textbf{User Name} section, and enter your username
+\end{enumerate}
+From now on, you can select this profile \emph{Profiles} and you will only be prompted to enter your password. See \url{https://www.cmu.edu/computing/software/all/tectia/index.html} for details.
+
+\subsubsection{SFTP}
+You may also want to transfer files between the server and your local computer. For this you will need to use an \emph{SFTP client}, which is separate from an SSH client.
+
+\subsubsection{Using SFTP via Linux Command Line}
+To run SFTP via the Linux command line, use the command \texttt{sftp [username]@[hostname]}. You will then be dropped into a special terminal window designed for remote file transfers. You can use \texttt{ls} and \texttt{cd} to navigate the remote directory, and \texttt{lls} and \texttt{lcd} to navigate the local directory (see next section for a brief description of the \texttt{ls} and \texttt{cd} commands). To transfer files, use the following two commands:
+\begin{itemize}
+    \item \texttt{get FILE}: transfer \texttt{FILE} from server to local computer
+    \item \texttt{put FILE}: transfer \texttt{FILE} from local computer to server
+\end{itemize}
+You can also use the \texttt{help} command to get a brief description of the various commands you can use. To exit back to the normal command line, use \texttt{exit} or \texttt{quit}. See \url{https://www.ssh.com/ssh/sftp/} for details.
+
+\subsubsection{Using SFTP via Tectia Secure File Transfer}
+Tectia also comes with an SFTP client called \emph{Tectia Secure File Transfer}. To use, simple log in to the server via the SSH client, then click on the new ``New File Transfer Window'' icon (a folder with an arrow on it) to open the SFTP window. You can then drag and drop files between your local computer (on the left side) and the server (on the right side). See \url{https://www.cmu.edu/computing/software/all/tectia/index.html} for details.
+
+\subsubsection{Alternatives}
+If you don't want to use Tectia, PuTTY is a well-established free and open source alternative. See \url{https://www.putty.org} for details.
+
+
+
+\subsection{Bash Command Line Shell}
+It is often useful to be able to run things directly from the \emph{command line}, which is a purely text-based interface that allows you to run various commands/programs. Programs that provide this interface are called \emph{shells}; while there are several command line shells in use, the one that is used by default on most Linux systems is the \textbf{Bash shell}. Like other shells, the Bash shell is a program that runs other programs/commands, in addition to providing various facilities to make this task easier (e.g., keyboard shortcuts, command history, command completion, variables, looping constructs).
+
+\subsubsection{Commands} \label{sec:bashcmd}
+While becoming comfortable with the Bash shell takes time, the vast majority of everyday tasks can be accomplished with just a few commands. The following is a list of the most common commands which are frequently used and a simple description of how to use them. We will follow man-pages convention and indicate optional arguments via \texttt{[optional\ttul argument]}.
+
+\begin{itemize}
+    \item \texttt{ls [DIRECTORY]}: display contents of \texttt{DIRECTORY} or the current directory if unspecified
+    \item \texttt{mkdir DIRECTORY}: create a directory with name \texttt{DIRECTORY}
+    \item \texttt{cd [DIRECTORY]}: move to \texttt{DIRECTORY} or the user's home directory if unspecified %use \texttt{cd -} to move to last directory
+    \item \texttt{cp [-r] ORIGIN DESTINATION}: copy \texttt{ORIGIN} to \texttt{DESTINATION}; use the \texttt{-r} option to copy recursively (e.g., when copying directories)
+    \item \texttt{rm [-r] FILE}: delete \texttt{FILE}; note that deletion on Linux commandline is PERMANENT, so be careful when using \texttt{rm}!; use \texttt{-r} to delete recursively (by default you cannot use \texttt{rm} on directories)\footnote{By default, \texttt{rm} prompts you when you try to delete an unwritable file (e.g., a file that does not exist); if desired, you can use the \texttt{-f} option to disable such prompts.}
+    \item \texttt{mv ORIGIN DESTINATION}: move \texttt{ORIGIN} to \texttt{DESTINATION}, essentially equivalent to \texttt{cp ORIGIN DESTINATION; rm ORIGIN}
+    \item \texttt{nano FILE}: edit \texttt{FILE} using the Nano text editor; all the keyboard shortcuts you need are listed at the bottom (for example, \texttt{\^{}X} stands for \textbf{Ctrl + x} and \texttt{M-/} stands for \textbf{Alt + /})
+    \item \texttt{man COMMAND}: display the manual pages for \texttt{COMMAND}; you can scroll through it using the arrow keys, search using \texttt{/}, and exit by pressing \texttt{q}
+\end{itemize}
+
+In addition, here are some commands that will be useful in Module 2 when we install Gurobi and CPLEX to Linux:
+
+\begin{itemize}
+    \item \texttt{sudo COMMAND}: run \texttt{COMMAND} as an administrator
+    \item \texttt{tar -xf TARGZ}: extract a \texttt{TARGZ} archive of the form \texttt{*.tar.gz}
+    \item \texttt{chmod MODE FILE}: set the permissions of \texttt{FILE} to \texttt{MODE}; in general, use a \texttt{MODE} of 666 for normal files, 755 for directories, and 777 for executable files\footnote{These recommendations are specifically for WSL, as a virtual Linux system on a Windows host. More common recommendations for \texttt{MODE} are 644 for normal files and 755 for directories and executables.}
+\end{itemize}
+
+\subsubsection{Bash Shell Features}
+In addition, the most important features of Bash for everyday use are:
+\begin{itemize}
+    \item \textbf{Command Completion}: If you type part of a filename/command, you can press TAB and Bash will finish it for you if the name is unambiguous (if not, you can press TAB again and Bash will display a list of potential options). This is extremely useful when you are working with files and/or commands with names that are long or difficult to remember.
+    \item \textbf{Command History}: Whenever you use the command line, Bash internally keeps a list of commands you have issued so far, and you can use the up/down arrows to search through them. This is extremely useful when you need to use a very long/complex command multiple times.
+    \item \textbf{Environment Variables}: Bash has a basic programming language that includes variables and simple looping constructs. In particular, Bash can be configured to store information in \textbf{environment variables} whose values are accessible from the command line. This is useful for storing configuration information that is used throughout the command line (e.g., where CPLEX/Gurobi are installed). You can configure your Bash shell (e.g., setting environment variables) by editing the \texttt{.bashrc} file in your home directory (typically \texttt{/home/<username>/}).
+\end{itemize}
+
+See \url{https://en.wikibooks.org/wiki/Bash_Shell_Scripting} for details.
+
+\subsubsection{Keyboard Shortcuts}
+Finally, here are some of the most useful keyboard shortcuts in Bash:
+\begin{itemize}
+    \item \keys{\ctrl + a}: go to the start of the command line
+    \item \keys{\ctrl + e}: go to the end of the command line
+    \item \keys{\ctrl + r}: search history backwards
+    \item \keys{\ctrl + g}: escape from history searching mode
+    \item \keys{\ctrl + c}: terminate running job
+\end{itemize}
+See \url{https://github.com/fliptheweb/bash-shortcuts-cheat-sheet} for more.
+
+\subsubsection{Tutorials}
+Bash has many more features, but for space considerations we will not cover them here. See \url{https://linuxsurvival.com} for a free online tutorial-style introduction to Bash.
+
+\subsection{Python}
+\subsubsection{Overview}
+Python is a programming language that is often used to quickly develop scripts and to link different applications together. It is known for its simple, straightforward syntax and an impressive collection of modules for additional features.
+
+As of 2019, there are two major versions of Python that are regularly used: Python 2 and Python 3. It is \textbf{highly recommend} to use Python 3 unless you specifically need to use Python 2; most optimization solvers have a Python 3 interface, and Python 2 is not supported after January 1st, 2020. Still, you may find that on some systems, running \texttt{python} will call Python 2 by default rather than Python 3; in such cases you can usually run Python 3 with the command \texttt{python3}.
+
+Python has many packages that enable you to use code written by other people. If you are not using a Python distribution (like Anaconda) that has its own installation command, it is \textbf{highly recommended} to install packages with the \texttt{pip}/\texttt{pip3} command. (In particular, \textbf{do not} use \texttt{easy\ttul install} or run \texttt{setup.py} directly unless absolutely necessary.) For some systems, you may also need to modify environment variables in order for Python to find your installed modules.
+
+Python has one of the better official documentation pages among widely used languages. In particular, make sure you are familiar with the standard functions and standard libraries; Python is explicitly designed so that ``There should be one--and preferably only one---obvious way to do it,'' so many common programming tasks have a dedicated module in the standard library. The following links are especially recommended if you are not particularly familiar with Python:
+\begin{itemize}
+    \item \textbf{Documentation}
+        \begin{itemize}
+            \item \url{https://docs.python.org/3/}: Official Python 3 documentation
+            \item \url{https://docs.python.org/2/}: Official Python 2 documentation
+            \item \url{https://docs.python-guide.org}: The Hitchhiker's Guide to Python, good for best practices and recommended libraries
+        \end{itemize}
+    \item \textbf{Key Language Concepts}
+        \begin{itemize}
+            \item \textit{Name Binding}: \url{https://mathieularose.com/python-variables/}
+            \item \textit{Pass-by-Object-Reference}: \url{https://robertheaton.com/2014/02/09/pythons-pass-by-object-reference-as-explained-by-philip-k-dick/}
+            \item \textit{List Comprehension}: \url{https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions}
+            \item \textit{Mutable vs Immutable Objects}: \url{https://towardsdatascience.com/https-towardsdatascience-com-python-basics-mutable-vs-immutable-objects-829a0cb1530a}
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{Installation}
+While many Linux machines already have Python installed on them, if you need to install Python yourself, there are three main options to consider:
+\begin{itemize}
+    \item \textbf{Dist Package}: The \textbf{recommended} method for installing Python on a Linux machine is to use an official package provided by your distro. Different distros (e.g., Ubuntu, openSUSE, Arch) have different command line (e.g., Apt, Zypper, Pacman) and graphical (e.g., Synaptic, YaST, Pamac) package managers, so find out how to install Python for your distro. Since installing Python packages correctly can often be confusing, it is \textbf{highly recommended} that you also install pip, which is the official package installer for Python.
+        
+        Note that in many cases the packages for Python 3 will be called \texttt{python3} and \texttt{pip3} whereas the packages for Python 2 will simply be called \texttt{python} and \texttt{pip}. See \url{https://docs.python-guide.org/starting/install3/linux/} for details on how to install Python 3 on Ubuntu, and \url{https://packaging.python.org/guides/installing-using-linux-tools/} for details on installing \texttt{pip} for different Linux distros.
+    \item \textbf{Anaconda}: An alternative method is to use Anaconda, which is the standard Python distribution bundled together with additional utilities for managing Python packages. This largely simplifies the package installation process and the management of virtual environments. You can download Anaconda from \url{https://www.anaconda.com/distribution/}.
+    \item \textbf{Official Website}: A third option is to download Python directly from the official website at \url{https://www.python.org/downloads/}. This may be useful if your (obscure) Linux distribution does not provide a Python package or if you want maximum control over the Python installation process. However, for most users the previous two options will be sufficient.
+\end{itemize}
+
+\subsubsection{Running Python Code}
+Python is an \emph{interpreted language}, meaning that its source code is converted into machine instructions by an \emph{interpreter} (e.g., the \emph{python} program) as the program is running. This means that Python applications (e.g., \texttt{example.py}) are executed either by running it via an interpreter:
+\begin{verbatim}
+python3 example.py
+\end{verbatim}
+or by running it directly (assuming it is executable, see the \texttt{chmod} command in \ref{sec:bashcmd})\footnote{The \texttt{./} is needed since Bash does not execute commands from the current directory by default.}:
+\begin{verbatim}
+./example.py
+\end{verbatim}
+
+
+
+\subsection{C++}
+\subsubsection{Overview}
+C++ is the most popular programming language used for high-performance applications. It is notable for providing relatively low-level access to hardware/memory and as one of the most feature-rich languages in common use.
+
+Like Python, the C++ language has several ``standards'' (i.e., versions of C++) which have been developed over the years. The most commonly used standards are C++98 and C++11, though the most recent actively developed standard is C++20. \textbf{For this course, we will be using the C++11 standard}, due to its widespread availability on modern architectures and its updated standard library which mitigates many of the shortcomings of C++98.
+
+Some people have the impression that C++ is difficult to use safely and correctly, due to its lax approach to memory management and vast array of features. Fortunately, compilers have gotten better at error detection and developers have established best practices that makes modern C++ programming signficantly more structured than it used to. The following links are especially recommended if you are not particularly familiar with C++:
+\begin{itemize}
+    \item \textbf{Documentation}
+        \begin{itemize}
+            \item \url{https://isocpp.org/faq} - unified Super-FAQ by the Standard C++ Foundation; good for best practices and gotchas
+            \item \url{https://en.cppreference.com} - comprehensive reference on C++ standards; covers C, C++98, C++11, C++14, C++17, and C++20 (preliminary)
+            \item \url{http://www.cplusplus.com/reference} - covers C++98 and C++11, somewhat outdated/incorrect but often comes up in searches
+        \end{itemize}
+    \item \textbf{Key Language Concepts}
+        \begin{itemize}
+            \item \textit{Dynamic Memory Allocation}: \url{https://www.learncpp.com/cpp-tutorial/69-dynamic-memory-allocation-with-new-and-delete/}
+            \item \textit{References}: \url{https://www.ntu.edu.sg/home/ehchua/programming/cpp/cp4_PointerReference.html}
+            \item \textit{Template Classes}: \url{https://www.learncpp.com/cpp-tutorial/133-template-classes/}
+            \item \textit{C++ Arrays}: \url{https://shendrick.net/Coding%20Tips/2015/03/15/cpparrayvsvector.html}
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{Installation}
+In order to build C++ applications you need a \emph{C++ compiler}. While many C++ compilers exist, the software that will be used extensively in this course (i.e., CPLEX and Gurobi) \textbf{only} supports the GNU C++ Compiler (GCC) on Linux systems.
+
+Fortunately, GCC is installed by default on many Linux systems. If not, you should use your distro's package manager to install it (similar to Python). Note that the \textbf{recommended} method is to install a \emph{development tools} package, which bundles together GCC with several other packages you need to compile C++ code, rather than just the GCC package. For example, for Ubuntu this package is called \texttt{build-essentials}, for openSUSE it is \texttt{devel\ttul C\ttul C++}, and for Arch it is \texttt{base-devel}. See \url{https://help.ubuntu.com/community/InstallingCompilers} and \url{https://tanmaync.wordpress.com/2018/01/18/install-c-c-development-environment-linux/} for details.
+
+\subsubsection{Running C++ Code}
+C++ is a \emph{compiled language}, meaning that its source code is converted into a \emph{binary} that can be run directly by the machine. Since the machine does not need to use an interpreter to run the binary, it is able to make more efficient use of the system resources, which generally results in higher performance. However, it also means that C++ applications must first be \emph{compiled} into an object file, and then \emph{linked} with libraries on the system, before they can be executed. For example, in order to execute \texttt{example.cpp}, you need to run the following three commands:
+\begin{verbatim}
+g++ -c -o example.o example.cpp
+g++ -o example example.o
+example
+\end{verbatim}
+For simple applications, the compiling and linking step can be done in a single command:
+\begin{verbatim}
+g++ -o example example.cpp
+\end{verbatim}
+However, most C++ applications consist of many different files and use various external libraries. In these cases, the commands for compiling and linking are significantly more complicated. Fortunately, there are tools that make this process much easier (e.g., Make/CMake); we will cover them in detail in Module 5 when we talk about Coding Tools.
+
+
+
+\subsection{Optional Content}
+\subsubsection{More Linux Commands} \label{sec:optcmd}
+\begin{itemize}
+    \item \texttt{passwd}: set user passwords
+    \item \texttt{wget}, \texttt{curl}: download things from the internet
+    \item \texttt{top}: interactively display running processes
+    \item \texttt{ps}: display user's currently running processes
+    \item \texttt{kill}: kill processes; you can kill all stopped jobs with \texttt{kill \$(jobs -ps)} %only use \texttt{-9} option if absolutely necessary since it can leave the system in a weird state
+    \item \texttt{df}: display hard drive usage
+    \item \texttt{du}: display file sizes
+    \item \texttt{zip}, \texttt{unzip}: compress and extrat zip archives
+    \item \texttt{grep}: search for words using regular expressions; more complex scripting tools include \texttt{awk} and \texttt{sed}
+    \item \texttt{w3m}, \texttt{lynx}, \texttt{links}, \texttt{elinks}: browse webpages from the command line
+    \item \texttt{cat}, \texttt{head}, \texttt{tail}: print the contents (\texttt{cat})/the first few lines (\texttt{head})/the last few lines (\texttt{tail}) of a file
+    \item \texttt{pwd}: print working directory (sometimes this is useful)
+    \item \texttt{find}: search for files fitting a pattern
+\end{itemize}
+
+\subsubsection{More Bash Keyboard Shortcuts}
+\begin{itemize}
+    \item \keys{\ctrl + z}: stop current job; useful when \keys{\ctrl + c} does not work (see \texttt{kill} command in \ref{sec:optcmd})
+    \item \keys{\Alt + b}: move backward one word (or go to start of word the cursor is currently on)
+    \item \keys{\Alt + f}: move forward one word (or go to end of word the cursor is currently on)
+    \item \keys{\ctrl + x + x}: toggle between start of command line and current cursor position
+    \item \keys{\ctrl + k}: delete from cursor to the end of the command line
+    \item \keys{\ctrl + u}: delete from cursor to start of the command line
+    \item \keys{\ctrl + w}: delete from cursor to start of word (i.e., delete backwards one word)
+    \item \keys{\Alt + d}: delete to end of word starting at cursor (i.e., delete forward one word)
+    \item \keys{\ctrl + y}: paste word or text that was cut using one of the deletion shortcuts (such as the one above) after the cursor
+\end{itemize}
+
+\subsubsection{Optional: Text Editors and IDEs}
+Since coding involves a lot of text editing, it is worth investing some thought into what you want to use as your primary editor. Depending on your programming environment and your preferences, there are three broad classes of editors to consider:
+\begin{itemize}
+    \item \textbf{Command Line Text Editors}: if your programming environment does not have graphical capabilities, these are your only options. While they take some time to learn, you will always have access to them since every machine has a command line. Some recommendations are:
+        \begin{itemize}
+            \item \textbf{Nano}: installed on most Linux systems, easy to use, limited functionality
+            \item \textbf{Vim}: installed on many Linux systems, extensive functionality, steeper learning curve
+            \item \textbf{Emacs}: common Vim alternative, highly extensible, awkward keyboard shortcuts
+        \end{itemize}
+    \item \textbf{Graphical Text Editors}: these are general purpose text editors with nice GUIs. All of them are highly extensible and come packed with features that make truly powerful and all-purpose. Some recommendations are:
+        \begin{itemize}
+            \item \textbf{Notepad++} (Windows only): the Notepad you ``love'' with more features
+            \item \textbf{GVim}: when you want to use Vim outside the command line
+            \item \textbf{Atom}: free and open source, originally designed for coding web apps
+            \item \textbf{Sublime}: consistently tops best text editors list, but official version is expensive (trial version is free but will nag you)
+        \end{itemize}
+    \item \textbf{IDEs}: these are text editors designed specifically for code development. Most allow you to edit, compile, debug, run tests, and more all from the same application and easily manage projects with dozens of files. Some recommendations are:
+        \begin{itemize}
+            \item \textbf{Visual Studio Code}: extremely popular cross-platform IDE from Microsoft
+            \item \textbf{Code::Blocks}: simple lightweight C++ IDE
+            \item \textbf{PyCharm}: beautiful Python IDE from JetBrains, free community version
+            \item \textbf{XCode} (Mac only): de facto IDE for Macs
+        \end{itemize}
+\end{itemize}
+
+
+\subsubsection{Programming Environment on Windows}
+As mentioned in section \ref{sec:progenv}, it is highly recommended that you use a Linux system as your primary programming environment even if you use Windows for other computing tasks. However, in situations where you need access to these tools in Windows, here are some recommendations:
+
+\begin{itemize}
+    \item For Python, the \textbf{recommended} method is to use Anaconda, due to its virtual environment features which can help organize different programming environments with conflicting software requirements. However, some tools (e.g., the \texttt{minted} LaTeX package) require access to Python from a non-qualified terminal, in which case you either need to add Anaconda to the system's PATH environment variable, or download Python directly from the official website.
+    \item For C++, there are two major options for C++ compilers:
+        \begin{itemize}
+            \item \textbf{Microsoft Visual C++ (MSVC)} is the native C++ compiler for Windows and the \textbf{only} one that is supported by Gurobi and CPLEX (on the Windows system). In this case, it is \textbf{recommended} that you install MSVC as part of \textbf{Visual Studio IDE}, which is a C++ IDE specifically designed to work with MSVC on Windows.\footnote{Note that Visual Studio IDE is different from \emph{Visual Studio Code}, which is a cross-platform IDE that does not come bundled with MSVC.} It is extremely well-supported, feature-rich, and easy to set up. In addition, the free Community version has virtually all of the relevant features of the Professional version. However, the software is huge (6.48GB) and can become quite slow for large projects. Furthermore, MSVC is typically not available on Linux systems, and you may need to modify your code if you want to compile it with GCC. See \url{https://visualstudio.microsoft.com/} for details.\footnote{While it is possible to install the Microsoft Visual C++ compiler on its own (i.e., \emph{Build Tools for Visual Studio}, link is at the bottom of page under Build Tools), there is not much benefit in doing so since the compiler alone is still quite large (4.7GB) and there are few applications that provide better integration than Visual Studio IDE.}
+            \item \textbf{Mingw-w64}, which is a framework for using GCC on Windows, is a very good alternative to MSVC. It is up-to-date, mature, significantly smaller than MSVC (733MB vs 4.7GB), and supported by many popular C++ IDEs. In addition, the compiler retains the ability to create native Window binaries, requiring only a handful of small DLLs. However, it is not always supported by software packages (e.g., Gurobi, CPLEX), project configuration is a bit more complicated, and the official documentation is quite out-of-date. See \url{https://mingw-w64.org/doku.php} for details (it is \textbf{recommended} to use the Sourceforge links rather than the MSYS2 links).\footnote{An alternative to installing Mingw-w64 on its own is to install it as part of \emph{MSYS2}, which is a POSIX compatibility layer for building GNU software on Windows. However, with MSYS2 you gain a dependency on the msys2 DLL, the extra compatibility layer is typically not needed, configuration is more complicated, and WSL provides similar functionality while also being significantly easier to set up.}
+        \end{itemize}
+\end{itemize}
+
+
+\end{document}

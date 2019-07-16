@@ -1,0 +1,27 @@
+# NOTE: To use this file, make sure it's named "Makefile".
+# BEGIN CONFIG SECTION
+# Set this to the model name(s)
+# (e.g., "mip1" if your source file is "mip1.cpp")
+MODEL_NAMES = example
+# END CONFIG SECTION
+
+# BEGIN MAKEFILE
+PLATFORM = linux64
+CPP      = g++
+# Options with and without debug info
+CARGS    = -m64 -g
+#CARGS    = -m64 -O3 -DNDEBUG
+
+GRBDIR   = $(GUROBI_HOME)
+INC      = $(GRBDIR)/include/
+CPPLIB   = -L$(GRBDIR)/lib -lgurobi_g++5.2 -lgurobi81
+
+.PHONY: all
+all: $(MODEL_NAMES)
+
+$(MODEL_NAMES): % : %.cpp
+	$(CPP) $(CARGS) -o $@ $< -I$(INC) $(CPPLIB) -lm
+
+.PHONY: clean
+clean:
+	rm -f $(MODEL_NAMES) *.o

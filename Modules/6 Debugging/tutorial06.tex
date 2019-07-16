@@ -1,0 +1,313 @@
+\documentclass[12pt]{article}
+\usepackage{../tutorialsty}
+%\usepackage[urlcolor=blue]{hyperref}
+\usepackage[colorlinks=false,urlcolor=blue]{hyperref}
+\def\UrlBreaks{\do/\do.\do-\do_}
+\usepackage[os=win,hyperrefcolorlinks]{menukeys}
+\urlstyle{sf}
+%\def\UrlBreaks{\do/\do.\do-}
+
+\begin{document}
+\title{Module 6}
+\author{Ryo Kimura}
+\date{}
+\maketitle
+
+\setcounter{section}{5}
+\section{Debugging}
+In this module we will discuss what you will likely spending the most time doing during coding; reading documentation and debugging.
+
+\subsection{Reading documentation}
+Documentation comes in many forms: official and unofficial, in online forums and in published user guides, in source code and in compiled API docs. Here we will cover some tips for reading and navigating documentation that you will likely encounter.
+%Python documentation
+\subsubsection{\texttt{man} pages}
+Most commands that can be run on the command line in Linux come with documentation in the form a \emph{\texttt{man} page} that explains its basic functionality.
+
+You can view the man page of any command with the \texttt{man} command (e.g., \texttt{man wget} to see the man page for the \texttt{wget} command).  The corresponding man pages is then opened using a basic text file viewer called \texttt{less}.  \texttt{less} uses single letter commands to navigate the man page; here are the most useful ones which should suffice to view most man pages:
+\begin{table}[!h]
+\begin{center}
+    \begin{tabular}{|r|l||r|l|}
+        \hline 
+        \texttt{h} & display help  & \texttt{/pattern} & search forward for \texttt{pattern} \\
+        $\downarrow$, \texttt{j} & scroll down one line & \texttt{?pattern} & search backward for \texttt{pattern} \\
+        $\uparrow$, \texttt{k} & scroll up one line & \texttt{n} & repeat previous search \\
+        space, \texttt{f} & scroll down one page & \texttt{N} & repeat previous search in reverse \\
+        \texttt{b} & scroll up one page & \texttt{q} & quit and exit \\
+        \texttt{g} & go to first line & & \\
+        \hline
+    \end{tabular}
+\end{center}
+\end{table}
+
+\subsubsection{Gurobi documentation}
+Gurobi's official documentation is fairly well-written and easy to navigate:
+\begin{itemize}
+    \item If you are looking for documentation on how to use a specific class/function, use the search bar in the top right. Otherwise, the easiest way to browse the documentation is via the navigation bar on the left side of the screen. See the \menu{Quick Start Guides} for a concrete example on how to solve a model from start to finish. See the \menu{Reference Manual} for specific details on the API.
+    \item Make sure to set the Version and Languages appropriately on the left navigation bar.
+    \item Most functions and classes are intuitively named, and the top page of the corresponding section in the \menu{Reference Manual} has a high-level overview. This includes attribute settings, parameter settings, solver status codes, error codes, and callback codes.
+    \item Most relevant documentation for the Python and C++ APIs are found in \menu{Python API Overview} and \menu{C++ API Overview} sections of the \menu{Reference Manual}.
+\end{itemize}
+\textbf{Documentation Link}: \url{https://www.gurobi.com/documentation/}
+
+\subsubsection{CPLEX documentation}
+CPLEX's official documentation, which is part of IBM Knowledge Center, can be a little difficult to navigate if you are not used to it. Here are some tips:
+\begin{itemize}
+    \item If you are looking for documentation on how to use a specific class/function, use the search bar in the top right. Otherwise, the easiest way to navigate is via the \menu{Table of Contents} on the left side of the screen (if it's closed, hover over it and click on the pin icon.)
+    \item Make sure you are looking at the documentation for the version of CPLEX you are using. This is indicated at the top of the page (e.g., \menu{Home > ILOG CPLEX Optimization Studio 12.9.0 > CPLEX}). You can change the version of CPLEX documentation by using the \menu{Change version or product} dropdown menu in the top left section of your screen.
+    \item If you are looking for information on a parameter setting, go to \menu{CPLEX > Parameters of CPLEX}, and look in \menu{Topical list of parameters} or \menu{List of CPLEX parameters}.
+    \item If you are looking for a high-level overview of a particular feature/concept (e.g., callbacks, Benders annotation), look under \menu{CPLEX > User's Manual for CPLEX} typically in \menu{Advanced programming techniques} or \menu{Discrete optimization}. If you want to know what function to use, \menu{CPLEX > Overview of the APIs of CPLEX} can be useful.
+    \item Most relevant documentation for the C++ API is found in \menu{CPLEX > CPLEX C++ Reference Manual > \texttt{optim.concert}} in either the \emph{Classes} or \emph{Functions} section. The major exception is \texttt{IloCplex}, which is documented under \texttt{optim.cplex.cpp} instead of \texttt{optim.concert}.
+    \item Most relevant documentation for the legacy Python API is in the \texttt{cplex.\ttul internal.\ttul subinterfaces} section. It is helpful to read the \textbf{Structure of the package \texttt{cplex}} section on the overview page (\url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/Python/topics/PLUGINS_ROOT/ilog.odms.cplex.help/refpythoncplex/html/overview.html}) to understand how the package is organized.
+    \item Most relevant documentation for DOcplex is in \texttt{docplex.mp.model}, \texttt{docplex.mp.linear}, or \texttt{docplex.mp.solution} module pages. Note that DOcplex documentation is hosted on Github, \textbf{NOT} IBM Knowledge Center.
+                %\begin{quote}
+                %    The CPLEX Python API is an object-oriented API providing most of its functionality through the class \texttt{Cplex} defined in the top level of the package \texttt{cplex} \dots most of its functionality is provided through methods of data attributes such as \texttt{Cplex.linear\ttul constraints}, \texttt{Cplex.objective}, and \texttt{Cplex.solution} \dots These objects are instances of classes defined within the subpackage \texttt{cplex.\ttul internal}. As its name suggests, classes and other data defined in the package \texttt{cplex.\ttul internal} are not to be instantiated or otherwise accessed directly by the user, but rather should only be accessed as attributes of an instance of the object \texttt{Cplex}.
+                %\end{quote}
+\end{itemize}
+\textbf{Documentation Link:} \url{https://www.ibm.com/support/knowledgecenter/en/SSSA5P_latest/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html}
+
+\subsubsection{Organization of CPLEX Legacy Python API}
+\paragraph{Cplex} (\texttt{c = Cplex()}): class encapsulating a CPLEX problem
+\begin{itemize}
+    %\item \textbf{ProblemType} (\texttt{c.problem\ttul type}): types of problems the Cplex object can encapsulate % ATTR GROUP
+    \item \textbf{RootParameterGroup} (\texttt{c.parameters}): class containing all the CPLEX parameters
+        %\begin{itemize}
+        %    \item \textbf{TuningConstants} (\texttt{c.parameters.tuning\ttul status}): status codes returned by tuning methods % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{VariablesInterface} (\texttt{c.variables}): methods for adding, querying, and modifying variables
+        \begin{itemize}
+            %\item \textbf{VarTypes} (\texttt{c.variables.type}): constants defining variable types % ATTR GROUP
+            \item \textbf{AdvancedVariablesInterface} (\texttt{c.variables.advanced}): methods for advanced operations on variables \emph{(protection, tightening bounds)}
+        \end{itemize}
+    \item \textbf{LinearConstraintInterface} (\texttt{c.linear\ttul constraints}): methods for adding, modifying, and querying linear constraints
+        \begin{itemize}
+            \item \textbf{AdvancedLinearConstraintInterface} (\texttt{c.linear\ttul constraints.advanced}): methods for handling lazy cuts and user cuts
+        \end{itemize}
+    \item \textbf{QuadraticConstraintInterface} (\texttt{c.quadratic\ttul constraints}): methods for adding, modifying, and querying quadratic constraints
+    \item \textbf{IndicatorConstraintInterface} (\texttt{c.indicator\ttul constraints}): methods for adding, modifying, and querying indicator constraints
+        %\begin{itemize}
+        %    \item \textbf{IndicatorType} (\texttt{c.indicator\ttul constraints.type}): identifies for types of indicator constraints % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{SOSInterface} (\texttt{c.SOS}): class containing methods for Special Ordered Sets (SOS)
+        %\begin{itemize}
+        %    \item \textbf{SOSType} (\texttt{c.SOS.type}): constants defining the type of special ordered sets % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{ObjectiveInterface} (\texttt{c.objective}): contains methods for querying and modifying the objective function
+        %\begin{itemize}
+        %    \item \textbf{ObjSense} (\texttt{c.objective.sense}): constants defining the sense of the objective function % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{MultiObjInterface} (\texttt{c.multiobj}): methods for adding, querying, and modifying multiple objectives
+        %\begin{itemize}
+        %    \item \textbf{ObjSense} (\texttt{c.multiobj.sense}): constants defining the sense of the objective function % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{MIPStartsInterface} (\texttt{c.MIP\ttul starts}): contains methods pertaining to MIP starts
+        %\begin{itemize}
+        %    \item (\texttt{c.MIP\ttul starts.effort\ttul level}): effort levels associated with a MIP start % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{SolutionInterface} (\texttt{c.solution}): methods for querying the solution to an optimization problem
+        \begin{itemize}
+            %\item \textbf{SolutionMethod} (\texttt{c.solution.method}): solution methods % ATTR GROUP
+            %\item \textbf{QualityMetric} (\texttt{c.solution.quality\ttul metric}): measures of solution quality % ATTR GROUP
+            %\item \textbf{SolutionStatus} (\texttt{c.solution.status}): solution status codes % ATTR GROUP
+            %\item \textbf{SolutionType} (\texttt{c.solution.type}): solution types % ATTR GROUP
+            \item \textbf{ProgressInterface} (\texttt{c.solution.progress}): methods to query the progress of optimization
+            \item \textbf{InfeasibilityInterface} (\texttt{c.solution.infeasibility}): methods for computing degree of infeasibility in a solution vector
+            \item \textbf{MIPSolutionInterface} (\texttt{c.solution.MIP}): methods for accessing solutions to a MIP
+                %\begin{itemize}
+                %    \item \textbf{CutType} (\texttt{c.solution.mip.cut\ttul type}): identifiers for types of cuts % ITERABLE ATTR GROUP
+                %\end{itemize}
+            \item \textbf{BasisInterface} (\texttt{c.solution.basis}): methods for accessing the basis of a solution
+                %\begin{itemize}
+                %    \item \textbf{BasisVarStatus} (\texttt{c.solution.basis.status}): status values returned by basis query methods % ATTR GROUP
+                %\end{itemize}
+            \item \textbf{SensitivityInterface} (\texttt{c.solution.sensitivity}): methods for sensitivity analysis
+            \item \textbf{SolnPoolInterface} (\texttt{c.solution.pool}): methods for accessing the solution pool
+                \begin{itemize}
+                    %\item \textbf{QualityMetric} (\texttt{c.solution.pool.quality\ttul metric}): measures of solution quality % ATTR GROUP
+                    \item \textbf{SolnPoolFilterInterface} (\texttt{c.solution.pool.filter}): methods for solution pool filters
+                        %\begin{itemize}
+                        %    \item \textbf{FilterType} (\texttt{c.solution.pool.filter.type}): attributes define the filter types % ATTR GROUP
+                        %\end{itemize}
+                \end{itemize}
+            \item \textbf{AdvancedSolutionInterface} (\texttt{c.solution.advanced}): advanced methods for acessing solution information
+            \item \textbf{MultiObjSolnInterface} (\texttt{c.solution.multiobj}): methods for accessing solutions for multi-objective models % documentation for __init__ has a typo (>o<)
+                %\begin{itemize}
+                %    \item \textbf{MultiObjFloatInfo} (\texttt{c.solution.multiobj.float\ttul info}): types of floating point information that can be queried for multi-objective optimization % ATTR GROUP
+                %    \item \textbf{MultiObjIntInfo} (\texttt{c.solution.multiobj.int\ttul info}): types of integer integer information that can be queries for multi-objective optimization % ATTR GROUP
+                %    \item \textbf{MultiObjLongInfo} (\texttt{c.solution.multiobj.long\ttul info}): types of long integer information that can be queried for multi-objective optimization % ATTR GROUP
+                %\end{itemize}
+        \end{itemize}
+    \item \textbf{PresolveInterface} (\texttt{c.presolve}): methods for dealing with the presolved problem
+        %\begin{itemize}
+        %    \item \textbf{PresolveStatus} (\texttt{c.presolve.status}): presolve status codes % ATTR GROUP
+        %    \item \textbf{PresolveMethod} (\texttt{c.presolve.method}): presolve solution methods % ATTR GROUP
+        %    \item \textbf{PresolveColStatus} (\texttt{c.presolve.col\ttul status}): presolve variable status codes % ATTR GROUP
+        %    \item \textbf{PresolveRowStatus} (\texttt{c.presolve.row\ttul status}): presolve linear constraint status codes % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{OrderInterface} (\texttt{c.order}): methods for setting and querying a priority order for branching
+        %\begin{itemize}
+        %    \item \textbf{BranchDirection} (\texttt{c.order.branch\ttul direction}): constants defining branching directions % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{ConflictInterface} (\texttt{c.conflict}): methods for identifying conflicts among constraints
+        %\begin{itemize}
+        %    \item \textbf{ConflictStatus} (\texttt{c.conflict.group\ttul status}): status codes returned by \texttt{conflict.get}
+        %    \item \textbf{ConflictConstraintType} (\texttt{c.conflict.constraint\ttul type}): types of constraints % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{AdvancedCplexInterface} (\texttt{c.advanced}): advanced control of a Cplex object \emph{(basic presolve, pivoting, strong branching)}
+        %\begin{itemize}
+        %    \item \textbf{PivotVarStatus} (\texttt{c.advanced.variable\ttul status}): use as input to pivoting methods % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{InitialInterface} (\texttt{c.start}): methods to set starting information for an optimization algorithm to solve continuous problems (LP, QP, QCP)
+        %\begin{itemize}
+        %    \item \textbf{BasisVarStatus} (\texttt{c.start.status}): status values returned by basis query methods % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{FeasoptInterface} (\texttt{c.feasopt}): finds a minimal relaxation of the problem that is feasible
+        %\begin{itemize}
+        %    \item \textbf{FeasoptConstraintType} (\texttt{c.feasopt.constraint\ttul type}): types of constraints % ATTR GROUP
+        %\end{itemize}
+    \item \textbf{LongAnnotationInterface} (\texttt{c.long\ttul annotations}): methods for adding, querying, and modifying long annotations
+    \item \textbf{DoubleAnnotationInterface} (\texttt{c.double\ttul annotations}): methods for adding, querying, and modifying double annotations
+    \item \textbf{PWLConstraintInterface} (\texttt{c.pwl\ttul constraints}): methods for adding, querying, and modifying PWL constraints
+\end{itemize}
+
+\subsection{Debugging: Bug Prevention}
+Put simply, \emph{debugging} is the process of fixing mistakes in your code. This is often a time-consuming process, and often constitutes the bulk of time spent coding.  While in general debugging is a skill that must be developed over time with experience, there are some general strategies that are commonly used in the debugging process.
+
+Some of the most important debugging strategies are \emph{bug prevention strategies}, which aim to prevent bugs from occurring in the first place. We cover a few of the most common ones here: \emph{incremental/modular development}, \emph{use of standard libraries}, and \emph{good coding practice}.
+
+\subsubsection{Incremental/Modular Development}
+One such bug prevention strategy is to \emph{implement small chunks of the code at a time} and check they are working before moving on to the next one. This simple but effective strategy makes it easier to catch and pinpoint errors early, since you can narrow your focus to what was last changed. \emph{Unit testing} is a systematic method for implementing this approach, see section \ref{sec:unit-testing} for more details.
+
+A related strategy is to \emph{structure your code in a ``modular'' manner}, i.e., implement smaller pieces of code that perform individual tasks which make up the whole, rather than trying to implement everything in a single main function.  This encourages code re-use which makes the code more robust, since there are fewer places to change when you want to modify our adjust your code later. It also tends to result in simpler, more concise code, further reducing the change for errors.
+
+\subsubsection{Python/C++ Standard Libraries}
+Another bug prevention strategy is to \emph{use functions from the language's standard library} whenever possible. Not only does it save development time, it eliminates a potential source of errors and bugs by using code that has been written and checked by experienced programmers.
+
+Here are some modules in Python's standard library that may be especially useful:
+\begin{itemize}
+    \item Built-in data structures: Python's built-in types \texttt{list}, \texttt{set}, and \texttt{dict} have many features and can be quite versatile
+    \item Built-in functions: \texttt{int()} and \texttt{str()} provide explicit conversion to integer and string objects; \texttt{all()} and \texttt{any()} provide convenient iterators over iterables with boolean values; \texttt{min()}, \texttt{max()}, and \texttt{sum()} are self-explanatory
+    \item \texttt{collections} implements common container datatypes, such as the factory function \texttt{namedtuple()} for creating tuple subclasses with named fields (e.g., \texttt{Point = namedtuple('Point', ['x', 'y'])}) and the \texttt{deque} class which implements a double-ended queue (the \texttt{heapq} module provides an implementation of priority queues)
+    \item \texttt{itertools} provides several functions for creating iterators and enumeration; for example, \texttt{itertools.combinations(L)} returns an iterator over all combinations of elements from the list \texttt{L}
+    \item \texttt{math} implements many useful functions commonly used in math
+    \item \texttt{random} provides several convenient functions for pseudorandom number generation
+    \item \texttt{decimal} implements a class for performing arbitrary precision decimal arithmetic
+    \item \texttt{csv} and \texttt{json} provide convenient functions for interacting with CSV and JSON files
+    \item \texttt{inspect} provides several useful functions for getting information about objects
+\end{itemize}
+
+C++ has several useful facilities as well:
+\begin{itemize}
+    \item The Containers library includes class templates for common data structues such as static and dynamic continuous arrays (\texttt{<array>}, \texttt{<vector>}), stacks (\texttt{<stack>}), double-ended queues (\texttt{<deque>}), and associative containers (\texttt{<map>}, \texttt{<set>})
+    \item \texttt{<string>} includes the \texttt{basic\ttul string} class for manipulating strings and conversion functions like the general-purpose \texttt{to\ttul string} as well as the more specific \texttt{stoi}, \texttt{stol}, and \texttt{stof}
+    \item The Utility library includes useful things including classes for dynamic memory management (\texttt{unique\ttul ptr} in \texttt{<memory>}), date and time utilities (\texttt{<chrono>}), and generic tuples (\texttt{pair}, \texttt{tuple} in \texttt{<utility>})
+    \item \texttt{<algorithm>} implements many functions for common algorithmic tasks such as binary search (\texttt{binary\ttul search}), sorting (\texttt{sort}), finding the first matching element (\texttt{find}), removing duplicate elements (\texttt{unique}), lexicographic comparison (\texttt{lexicographical\ttul compare}), and constructing heaps (\texttt{make\ttul heap})
+    \item \texttt{<cmath>} provides standard C library mathematical functions
+    \item \texttt{<random>} provides utilities for pseudorandom number generation
+\end{itemize}
+
+\subsubsection{Good Coding Practice}
+Finally, here are some miscellaneous strategies that get categorized under ``good coding practice'' that are really about bug prevention:
+\begin{itemize}
+    \item Always initialize variables with some value. Many tricky bugs can stem from uninitialized variables.
+    \item Define variables as close to the point in the source code when they get used as possible. This naturally encourages modular development and safeguards against unintended variable values.
+    \item Use \texttt{try}-\texttt{catch} blocks to handle errors gracefully. Throw exceptions when you encounter an error in your code.
+    \item Use \texttt{assert} statements to check assumptions about the state of the code. See \url{https://github.com/emre/notes/blob/master/python/when-to-use-assert.md} for more details on when to use assert (in Python).
+    \item Avoid using C-style code in C++, e.g.
+        \begin{itemize}
+            \item use \texttt{std::cout << k << std::endl} instead of \verb+printf("%d\n", k);+
+            \item use \texttt{std::array<int>} and \texttt{std::vector<int>} instead of \texttt{int[]}
+            \item use \texttt{std::string} instead of \texttt{char*}
+            \item use references (\texttt{Model\& p}) and smart pointers (\texttt{std::unique\ttul ptr<Model> p}) instead of raw pointers (\texttt{Model *p})
+            \item use \texttt{new} and \texttt{delete} instead of \texttt{malloc} and \texttt{free}
+        \end{itemize}
+\end{itemize}
+
+\subsection{Debugging: Bug Search and Analysis}
+When your code does inevitably have a bug, you must search for where the bug took place, and then determine how best to fix it.
+
+\subsubsection{Binary Search}
+Norman Matloff, a professor from UC Davis, gives the following characterization of the debugging process in his \emph{Guide to Faster, Less Frustrating Debugging} for C programming (see \url{http://heather.cs.ucdavis.edu/~matloff/UnixAndC/CLanguage/Debug.html}):
+\begin{quote}
+When your program contains a bug, it is of course because somewhere there is something which you believe to be true but actually is not true. In other words:
+\begin{quote} \textbf{Finding your bug is a process of confirming that many things you believe are true, until you find one which is not true.} \end{quote}
+Here are examples of the types of things you might believe are true:
+\begin{itemize}
+    \item You believe that at a certain point in your source file, a certain variable has a certain value.
+    \item You believe that in a given if-then-else statement, the ``else'' part is the one that is executed.
+    \item You believe that when you call a certain function, the function receives its parameters correctly.
+\end{itemize}
+\textbf{So the processing of finding the location of a bug consists of confirming all these things!} If you believe that a certain variable should have a certain value at a certain point, check it! If you believe that the ``else'' construct above is executed, check~it!
+
+Usually your belief will be confirmed, but eventually you will find a case where your belief will not be confirmed--and you will then know the location of the bug.
+\end{quote}
+Since debugging is the process of searching where in the code your belief is not confirmed, Matloff suggests a \emph{binary search} approach to efficiently narrow down the location of the bug (i.e., check that the belief is true at the halfway point in the source code, then check at the one-quarter or three-quarters points, and so on).  While the strategy is simple, it can be very helpful to think of debugging as a search problem especially when you are not sure of the exact cause of the bug.
+
+The search process can be made easier by using good text editors and debuggers. See section \ref{sec:debuggers} for more specfics.
+
+\subsection{Unit Testing} \label{sec:unit-testing}
+\emph{Unit testing} is a method in which individual \emph{units} of source code are tested to determine whether they are fit for use. Unit tests are typically minimal examples of code usage to test whether a particular piece of functionality actually works as intended.
+
+For example, suppose you are implementing a Graph class to represent an undirected graph. You may then have unit tests to check the following functionality:
+\begin{itemize}
+    \item Adding and removing nodes
+    \item Creating an empty graph
+    \item Computing connected components
+    \item Computing the shortest $s$--$t$ path
+\end{itemize}
+
+So why should you use unit tests? In short, unit tests provide an \emph{automated} method to ensure that your code implements the intended functionality. Do you ever test newly implemented code using small scripts? If you put those in a unit test, you can easily check \emph{all} of them at any time, and you can check that any changes you make later does not break any functionality you already have (e.g., \emph{regression testing}).
+
+For Python, \textbf{pytest} is recommended for its simple syntax and rich functionality; see \url{https://docs.pytest.org/en/latest/} for details. The \textbf{unittest} module in the Python standard library also provides a unit testing framewor, though may be a bit harder to use; see \url{https://docs.python.org/3/library/unittest.html} for details.
+
+For C++, \textbf{doctest} is recommended for its header-only implementation, straightforward syntax, and fast compile times; see \url{https://github.com/onqtam/doctest} for details.\footnote{Also see \url{https://a4z.bitbucket.io/blog/2018/05/17/Speed-up-your-test-cycles-with-CMake.html} for details on using doctest with CMake.}  \textbf{googletest} is another popular unit testing framework with extensive functionality but more involved setup and a slightly steeper learning curve; see \url{https://github.com/google/googletest} for details.
+
+See \url{https://mtlynch.io/good-developers-bad-tests/} for details on writing good unit tests (and how it's different from writing good source code). See \url{https://people.orie.cornell.edu/snp32/orie_6125/testing/testing.html} for more details on test-driven development more broadly.
+
+% TODO: Specific examples
+
+
+\subsection{Debuggers} \label{sec:debuggers}
+\emph{Debuggers} are programs that are designed to assist in searching for bugs as you run your code. Debuggers can provide a more convenient method to track the state of variables, check conditions, and analyze what is happening line by line.
+
+gdb/ddd
+\subsubsection{How to Use GDB}
+The \textbf{GNU Project Debugger (GDB)} is a ubiquitous debugger for C and C++ programs. While the minimal command line interface\footnote{Many IDEs are able to run GDB from the editor itself. There is also a graphical front-end to GDB called \textbf{DDD} that also may be of interest; see \url{https://www.gnu.org/software/ddd/} for more details.} can be a bit intimidating, it can be a very powerful tool for figuring out where a bug takes place.
+
+GDB works by executing a program while keeping track of the state of information associated with the program. It runs the program normally until it encounters a \emph{breakpoint}, at which it will pause execution and allow you to step through the program line by line, continue to the next breakpoint, see the value of a variable, etc. The following steps highlight the general process of debugging with GDB:
+\begin{enumerate}
+    \item Decide where to set a breakpoint in the source code (e.g., \texttt{example.cpp}), either by line number or by function name.
+    \item Compile your code with debugging flags enabled (e.g., \texttt{-g} for GCC).
+    \item Run \texttt{gdb example} on the command line.
+    \item Use \texttt{break <linenum>} or \texttt{break <funcname>} to set a breakpoint at line number \texttt{linenum} or call to function \texttt{funcname}.  Use \texttt{info breakpoints} to show all breakpoints.
+    \item Use \texttt{watch <var>} to set a breakpoint that triggers whenever the value of \texttt{var} changes.\footnote{NOTE: As of April 2019, \texttt{watch} breakpoints do not work in Windows Subsystem for Linux (WSL) for unknown reasons.}
+    \item Run through the program using various options:
+        \begin{itemize}
+            \item Use \texttt{run} to start the program from the beginning to the next breakpoint.
+            \item Use \texttt{continue} to continue running the program to the next breakpoint.
+            \item Use \texttt{next} to step through code one line at a time, passing over functions.
+            \item Use \texttt{step} to step through code literally one line at a time.
+            \item Use \texttt{kill} to kill the program process. You can then restart the program from the beginning again with \texttt{run}.
+        \end{itemize}
+    \item Once you have reached a suitable point in the program, analyze the state using various options:
+        \begin{itemize}
+            \item Use \texttt{print <var>} to show value of \texttt{var}. Most helpful for simple types like \texttt{char}, \texttt{double}, etc.
+            \item Use \texttt{backtrace} to show the current stack frame. This can sometimes help determine where the error took place. Use \texttt{up} to go up the stack (towards outer calls, closer to main) and \texttt{down} to go down the stack (towards inner, nested calls).
+            \item Use \texttt{list} to print the next few lines of source code. Use \texttt{list 1} to go to the beginning of the file, and \texttt{list -} to go backwards.
+        \end{itemize}
+    \item Use \texttt{quit} to quit GDB.
+\end{enumerate}
+
+See \url{https://beej.us/guide/bggdb/} and \url{https://thispointer.com/gdb-debugger-tutorial-series/} for more detailed guides on basic GDB use.
+
+% Debugging Under Unix: gdb Tutorial
+%\url{https://www.cs.cmu.edu/~gilpin/tutorial/}
+
+%Guide to Faster, Less Frustrating Debugging (gdb tutorial)
+% Good tips, but C example is very old and modern compilers are
+% smart enough to give more warnings
+%\url{heather.cs.ucdavis.edu/~matloff/UnixAndC/CLanguage/Debug.html}
+
+
+
+
+\end{document}

@@ -1,0 +1,278 @@
+\documentclass[12pt]{article}
+\usepackage{../tutorialsty}
+\usepackage[style=numeric, backend=biber, doi=false, url=false, isbn=false, eprint=false]{biblatex}
+\addbibresource{../references.bib}
+%\usepackage[hypertex,colorlinks=true,urlcolor=blue]{hyperref}
+\usepackage[colorlinks=true,urlcolor=blue]{hyperref}
+\urlstyle{sf}
+\def\UrlBreaks{\do/\do.\do-}
+
+\newcommand\red[1]{{\color{red}#1}}
+
+\begin{document}
+\title{Module 5}
+\author{Ryo Kimura}
+\date{}
+\maketitle
+
+\setcounter{section}{4}
+\section{Coding Tools and Documentation}
+\subsection{Version Control Systems (VCS)}
+Coding is an iterative process, where we write some code, test it, find some bugs, fix it, test it again, find more bugs, etc. During this process, it is often helpful to have a record of the changes made, particularly if the code is being written collaboratively. \emph{Version Control Systems (VCS)} are designed specifically for managing changes to source code over time. We will primarily discuss \textbf{Git} due to its widespread use in open-source software and its eponymous integration with \textbf{Github}, a website hosting many open source projects.
+
+\subsubsection{Why should I use a VCS?}
+Beyond just keeping track of code changes, VCS allow developers to:
+\begin{itemize}
+    \item restore source code to a previous state
+    \item manage different versions of the source code
+    \item resolve conflicting changes to the source code
+    \item pinpoint when certain bugs were introduced
+\end{itemize}
+Thus, while VCS show their usefulness most when developing code as a team, it has advantages for individual developers as well.
+
+\subsubsection{Setting up a Git Repository}
+If you want to set up a copy of an existing Github repository on your local machine, it's pretty simple; run \texttt{git clone <repoURL>}, where \texttt{repoURL} is the URL of the repository (e.g., \nolinkurl{https://github.com/username/reponame}), then run \texttt{git config --global user.name <name>} and \texttt{git config --global user.email <email>} to set the name and email associated with your commits.
+
+On the other hand, if you want to set up a \emph{new} Git repository, perhaps based on a project folder with existing files, follow these steps:
+\begin{enumerate}
+    \item In the command line, navigate to the directory you want to set up.
+    \item Run \texttt{git init} to initialize the Git repository.
+    \item If you have not done so already, run \texttt{git config --global user.name <name>} and \texttt{git config --global user.email <email>} to set the name and email associated with your commits for all of your Git repositories.\footnote{If you want to use different names and emails for each of your repositories, run \texttt{git config} without the \texttt{--global} option.}
+    \item Use \texttt{git add <filename>} to add files you want to track (if any).
+    \item Use \texttt{git commit -m"Initial commit"} to make the initial commit.
+\end{enumerate}
+In addition, you may want to create a clone of your repository on Github. This gives you a backup of your repository in case you accidentally delete it, as well as being able to access your code over the internet. To create a clone of a local Git repository on Github, follow these steps:
+\begin{enumerate}
+    \item Go to Github at \url{https://github.com}, and create an account if you don't already have one.
+    \item Log in to your Github account.
+    \item Create a new repository on Github; see \url{https://help.github.com/en/articles/adding-an-existing-project-to-github-using-the-command-line} for details.
+    \item In the command line, run \texttt{git remote add origin <remoteURL>}, where \texttt{remoteURL} is the URL of your repository (e.g., \nolinkurl{https://github.com/username/reponame}).
+    \item Use \texttt{git push origin master} to push the local changes to the remote repository.
+\end{enumerate}
+See \url{https://help.github.com/en/articles/adding-an-existing-project-to-github-using-the-command-line} and \url{https://kbroman.org/github_tutorial/pages/init.html} for details.
+
+\subsubsection{Basic Git Workflow}
+The general workflow when using a Git repository is as follows:
+\begin{enumerate}
+    \item Edit files (e.g., \texttt{example.cpp}) using a text editor.
+    \item Use \texttt{git status} to see which files have been modified, and use \texttt{git diff} to check what changes were made to which files.
+    \item When you are ready to save your changes, use \texttt{git add} to mark the relevant files (e.g., \texttt{git add example.cpp}).
+    \item After marking all the files, use \texttt{git commit} to officially ``commit'' your changes, along with a comment describing the changes using the \texttt{-m} flag (e.g., \texttt{git commit -m "Made changes X, Y to example.cpp"}).
+    \item If you have a remote repository set up, run \texttt{git push} to push those changes to Github.
+\end{enumerate}
+%%TODO: Talk about moving/deleting files?
+
+\subsubsection{Basic Resetting Commands}
+Broadly speaking, file changes in Git go through four ``save'' phases:
+\begin{enumerate}
+    \item In the \emph{edit} phase, the changes are not saved by Git in any way.
+    \item In the \emph{stage} phase, the changes are saved only in the current branch of the project. This is done using the \texttt{git add} command.
+    \item In the \emph{commit} phase, the changes are saved as part of the project history. This is done using the \texttt{git commit} command.
+    \item In the \emph{push} phase, the changes are pushed to a remote repository (e.g., Github) so the changes are publicly accessible by others. This is done using the \texttt{git push} command.
+\end{enumerate}
+Each of these phases has a different command for ``reversing'' one phase:
+\begin{itemize}
+    \item (\emph{Edit}): Git has not saved your changes in any way, so you must manually undo or use your text editor's undo function.
+    \item (\emph{Stage}): Use \texttt{git reset <filename>} to reverse \texttt{git add <filename>}. This removes the file from the staging phase.
+    \item (\emph{Commit}): Use \texttt{git reset HEAD\^} to reverse \texttt{git commit}. This removes the current commit entry while keeping all file changes intact.\footnote{If you want to reverse changes in the files as well, you can use \texttt{git reset --hard HEAD\^}. Note, however, that this change is irreversible!}
+    \item (\emph{Push}): Use \texttt{git revert HEAD} followed by \texttt{git push} to reverse changes in the push phase. This creates a NEW commit that reverses the effects of the last commit, then pushes it to the remote repository.
+\end{itemize}
+
+\subsubsection{Recovering Files}
+The simplest way to recover a file is to run \texttt{git checkout -- <filename>}, which restores a file to the state associated with the last commit. This is useful when you accidentally delete a file or when you want to ``start over'' from the last commit. If you want to restore a file to a state associated with an older commit, follow these steps:
+\begin{enumerate}
+    \item Run \texttt{git log} to identify the commit you want to go back to, based on the commit comments. Note that each commit is associated with a unique id consisting of a string of numbers and letters (e.g., commit 157bba1d151e758a0441b4376b51469d358999c9).
+    \item To restore your repository to the state associated with, say commit 157bba1d15\dots, run a command like \texttt{git checkout 157bba1d}. Note that you do not have to specify the entire commit id, only enough that it can be uniquely identified.
+    \item At this point, you will get a message saying that Git is in `detached HEAD' state. This just means that any changes you make will not be saved to the repository by default. If the ``current'' version of the file is what you want, copy it to a different location.
+    \item To restore Git to its normal state from the `detached HEAD' state, run \texttt{git checkout master}.
+\end{enumerate}
+See \url{https://www.atlassian.com/git/tutorials/undoing-changes} for more details on \texttt{git checkout}.
+
+\subsubsection{Incorporating Changes from a Remote (Github) Copy}
+So far we have focused on using Git in the context of a project with a single developer. However, Git is most commonly used when collaborating on a project with multiple developers. In this case, it is useful to know how to incorporate changes from other versions of the code (e.g., the one on Github which may be updated by others) with your local version of the code:\footnote{Of course, in order to do this your local copy must be configured to work with the one on Github. If you created your local copy with \texttt{git clone}, this is already done. Otherwise, see \url{https://www.atlassian.com/git/tutorials/syncing} on how to set it up.}
+\begin{enumerate}
+    \item Run \texttt{git fetch origin} to download changes from the Github repository, if any.
+    \item Run \texttt{git merge origin/master}\footnote{While \texttt{git merge} is a safe recommendation for small projects, for larger/older projects repeated merges can clutter the project history. For this reason, some people prefer using \texttt{git rebase} instead of \texttt{git merge} when incorporating changes from the Github repository. See \url{https://www.atlassian.com/git/tutorials/rewriting-history/git-rebase} and \url{https://www.atlassian.com/git/tutorials/merging-vs-rebasing} for details about this alternative.} to merge changes into your local copy.\footnote{The fetch and merge steps can also be achieved in a single command by running \texttt{git pull}. Here we chose to present the two commands separately for clarity, and also because this allows users to check the remote changes using \texttt{git checkout} if desired.}
+    \item At this point, the merge may fail if you have unsaved changes in your local copy. If so, run \texttt{git stash} to temporarily ``stash'' them away (note that \texttt{git stash} will NOT save changes to any files that Git is not tracking; in particular, if you have new files or files that are being ignored that you want to keep, use \texttt{git add <filename>} to stage them BEFORE running \texttt{git stash}), then run \texttt{git merge origin/master} again.
+    \item After the merge is successful, run \texttt{git stash pop} to incorporate your stashed changes to the updated code.
+    \item At this point, you may get a \emph{merge conflict} if Git cannot automatically merge the two versions together. If so, resolve the conflict by looking at the affected files and making the appropriate changes (see \url{https://www.atlassian.com/git/tutorials/using-branches/merge-conflicts} for details). Once you have resolved the conflict, run \texttt{git reset} followed by \texttt{git stash drop}.
+\end{enumerate}
+
+See \url{https://longair.net/blog/2009/04/16/git-fetch-and-merge/} and \url{https://stackoverflow.com/questions/7751555/how-to-resolve-git-stash-conflict-without-commit} for more details.
+
+\subsection{Build Systems}
+\subsubsection{What is a build system?}
+Build systems are an essential coding tool if you are working on a project that uses a \emph{compiled} programming language (e.g., C++). In this case, the commands required for compilation can quickly become long and unwieldy, especially with multiple source code files. \emph{Build Systems} automatically determine what commands need to be run with what options in what order, so the developer does not have to remember them.
+
+\subsubsection{Basic Structure of a Compilation Command}
+Since build systems are all about compilation, it is worth briefly discussing the basic structure of a compilation command. For example, here is a compilation command for a C++ Gurobi model:
+\begin{verbatim}
+g++ -m64 -g -o example example.cpp -I/opt/gurobi810/linux64/include \
+    -L/opt/gurobi810/linux64/lib -lgurobi_g++5.2 -lgurobi81 -lm
+\end{verbatim}
+(Note that \verb+\+ is simply an indicator that the command is continued on the following line.)
+
+This command can be broken down into seven parts:\footnote{Here, we used a single command for compiling a final executable to concisely illustrate all the necessary parts. However, in practice it is common to separate the \emph{compilation} step, which does not need library paths and library flags, and the \emph{linking} step, which does not need include paths (see Section 1.5.3 of Module 1).}
+\begin{itemize}
+    \item \textbf{Compiler} [\texttt{g++}]: command calling the C++ compiler
+    \item \textbf{C++ flags} [\texttt{-m64 -g}]: control the compilation process in various ways; here \texttt{-m64} means to generate code for 64-bit processors, and \texttt{-g} means to keep debugging information in the final executable (so it can be analyzed by a debugger); you may also see flags to show/suppress certain warnings (e.g., \texttt{-Wall} or \texttt{-Wno-ignored-attributes})
+    \item \textbf{Output file} [\texttt{-o example}]: name of output file; here we are creating the final executable, but it can also be an intermediate \emph{object file} (e.g., \texttt{example.o})
+    \item \textbf{Source code file(s)} [\texttt{example.cpp}]: name(s) of file(s) containing the C++ source code; here we only have one file, but in general we can have multiple files
+    \item \textbf{Include paths} [\texttt{-I/opt/gurobi810/linux64/include}]: indicate where to look for header file(s) of libraries used in the source code; here we must specify the location for the Gurobi libraries (i.e., \texttt{/opt/gurobi810/linux64/include}) since they are not in a standard location like \texttt{/usr/include} or \texttt{/usr/local/include}
+    \item \textbf{Library paths} [\texttt{-L/opt/gurobi810/linux64/lib}]: indicate where to look for library files used in the source code; here we must specify the location for the Gurobi libraries (i.e., \texttt{/opt/gurobi810/linux64/lib}) since they are not in a standard location like \texttt{/usr/lib} or \texttt{/usr/local/lib}
+    \item \textbf{Library flags} [\texttt{-lgurobi\ttul g++5.2 -lgurobi81 -lm}]: specify which libraries to link to the final executable; here we are using the Gurobi libraries \texttt{libgurobi\ttul g++5.2.a} and \texttt{libgurobi81.so}, and the standard library \texttt{libm.so} (in \texttt{/usr/lib/x86\ttul 64-linux-gnu} on Ubuntu).
+\end{itemize}
+
+Often the include paths, library paths, and library flags are easy to forget or misspecify. It may be helpful to recognize the common compiler errors associated with each:
+\begin{itemize}
+    \item \texttt{fatal error: gurobi\ttul c++.h: No such file or directory}: This error tells us that the compiler could not find the header file \texttt{gurobi\ttul c++.h} (we can tell it's a header file by the \texttt{.h} suffix). This is likely due to an error specifying the \emph{include path}.
+    \item \texttt{/usr/bin/ld: cannot find -lgurobi81}: This error tells us that the linker \texttt{ld} could not find the library file associated with \texttt{-lgurobi81}. This is likely due to an error specifying the \emph{library path}.
+    \item Many many MANY errors about \texttt{undefined reference to <object>}: This error tells us that the linker was unable to find the implementation for a class, function, etc. This is likely due to an error specifying the \emph{library flags}.
+\end{itemize}
+
+See \url{https://gist.github.com/gubatron/32f82053596c24b6bec6} for a more detailed discussion on the C++ compilation process.
+
+\subsubsection{Make}
+\emph{Make} is one of the most common build systems used for C++. The basic idea is to encode the commands that need to be run in a \emph{Makefile}, which provides basic programming capabilities to specify compilation patterns.
+
+While Makefiles can get very sophisticated, a basic Makefile can be created with the following knowledge:
+\begin{itemize}
+    \item Comment lines start with a \texttt{\#}.
+    \item All variables in Makefiles (essentially) store strings. You can assign a value to a variable with \texttt{VARNAME = varvalue}, and you can refer to a variable value using \texttt{\$(VARNAME)}.
+    \item \emph{Build rules} (i.e., patterns that specify how to compile things) take the following basic form:
+\begin{verbatim}
+TARGET: DEPENDENCIES
+    COMPILATION COMMAND
+\end{verbatim}
+        For example, a simple build rule to compile \texttt{hello.cpp} (without using variables) looks like this:
+\begin{verbatim}
+hello: hello.cpp
+    g++ -g -std=c++11 -o $@ $^
+\end{verbatim}
+Here \verb+$@+ is a variable that evaluates to TARGET, and \verb+$^+ evaluates to DEPENDENCIES. If DEPENDENCIES consists of multiple files (e.g., \texttt{hello.cpp library.cpp}), \verb+$^+ evaluates to the whole list (e.g., \texttt{hello.cpp library.cpp}), whereas \verb+$<+ evaluates to just the first one (e.g., \texttt{hello.cpp}). Note that the indentation on the second line of a build rule MUST be created with a TAB.\footnote{If you use vim with \texttt{expandtab}, you can put \texttt{.RECIPEPREFIX += } at the beginning of the Makefile to use spaces instead (note the space after \texttt{+=}).}
+    \item Some build rules are designed not to compile code, but to group a series of commands together. These should be specified as such with \texttt{.PHONY}, to ensure they don't accidentally conflict with a file with the same name. Common examples include \texttt{all}, \texttt{clean}, and \texttt{install}.
+\end{itemize}
+See \url{http://mrbook.org/blog/tutorials/make/} for details on a simple example of Makefiles. See \url{https://spin.atomicobject.com/2016/08/26/makefile-c-projects/} and \url{https://devhints.io/makefile} for details on more sophisticated uses of Makefiles.
+
+\red{\textbf{TODO: More complete explanation of Makefile structure}}
+
+\subsubsection{CMake}
+CMake is a meta-build system, in the sense that it is designed to generate configuration files for other build systems (e.g., Make). While Make often suffices for simple projects, you may find that CMake is easier to use for more complex projects.
+
+Like C++, CMake has a reputation for being tricky to use correctly, but modern versions have features that significantly simplify usage. See \url{https://www.slideshare.net/DanielPfeifer1/cmake-48475415} and \url{https://gist.github.com/mbinna/c61dbb39bca0e4fb7d1f73b0d66a4fd1} for recommendations on how to use modern CMake effectively. The official CMake documentation at \url{https://cmake.org/cmake/help/latest/} may also be helpful for specific details.
+
+To use CMake, follow these steps:
+\begin{enumerate}
+    \item Create a configuration file called \texttt{CMakeLists.txt} which specifies all of the information necessary for compilation.
+    \item Create and navigate to the build directory (e.g., \texttt{mkdir Debug; cd Debug/})
+    \item Run the command \texttt{cmake -DCMAKE\ttul BUILD\ttul TYPE=Debug} to generate the \emph{build configuration}, which sets up the framework for compiling your program.
+    \item Run \texttt{cmake --build .} (notice the \texttt{.} at the end) to compile your program. If you need to re-compile your program, you just need to run 
+\end{enumerate}
+As long \texttt{CMakeLists.txt} does not change, you only need to run step 4 to re-compile your source code when it's edited. However, if \texttt{CMakeLists.txt} is changed (e.g., new source code file, new library deependency, etc.), you must run step 3 again to update the build configuration.
+
+See the Canvas module for an example CMake configuration file for Gurobi and CPLEX (they require a little more editing to use compared to the Makefiles from Module 2).
+
+% References
+% Sebastian Pokutta, Academic Toolchain
+
+\subsection{Documentation}
+In a perfect world, all code would be so clearly written that documentation would be unnecessary. But in practice, if you foresee your code being used at any point in the future, it is worthwhile to spend time creating documentation. If nothing else, it will help you understand your own code when you come back to it months later.
+
+Broadly speaking, there are two types of documentation: \emph{code comments}, which are designed to help programmers editing the code in the future, and \emph{docstrings}, which are designed to help users utilize the code in the context of another project. Docstrings are typically used to further generate \emph{API documentation}, which is a formatted document separate from the code that explains its functionality.
+
+\subsubsection{Code Comments}
+It is worth noting that \emph{code comments, by nature, explain code that is not clear enough to explain itself}. This leads to some people arguing that code without comments is almost never understandable, while others argue that comments should be avoided as much as possible, focusing instead on writing better code. While both positions are somewhat extreme, they hold merit in the sense that both of the following statements are widely accepted:
+\begin{itemize}
+    \item Improving the code is always preferred over improving the comment, but
+    \item purely self-documenting code is often impossible in practice.
+\end{itemize}
+In practice, this translates to the following general guidelines:
+\begin{itemize}
+    \item If you feel the need to write a comment to explain what a piece of code is doing, \emph{try rewriting the code first} to see if it can be written in a way that it no longer needs a comment.
+    \item Use variable and function names that are descriptive and follow a consistent/conventional style (e.g., use \texttt{GenerateMasterProblem()} instead of \texttt{genmprob()} for a function that generates the master problem of a decomposition scheme). This often makes it easier to tell what the code is doing without additional comments.
+    \item Comments should explain \emph{why}, not \emph{how}. Comments that state the obvious are unhelpful and distracting. Instead, comments should explain higher level ideas like the programmer's intent, design decisions, and the overall structure of the code.
+    \item Write pseudocode in the comments before and while you code. This saves time and makes it easy to write good comments that summarize the code.
+\end{itemize}
+
+Alternatively we can categorize code comments into a few distinct categories (based on \cite{codecomplete2}), some good and some bad:
+\begin{enumerate}
+    \item \textbf{Intent} [Good]: Describe what the code is \emph{intended} to do and/or \emph{why} (e.g., \texttt{Apply heuristic to every feasible solution found}). This can inform future programmers about design decisions that were made and how to best modify/extend the code.
+    \item \textbf{Summary} [Good]: Briefly summarize a section of code (e.g., \texttt{Add subtour elimination cuts}). This helps convey the high-level idea and the general structure.
+    \item \textbf{Non-coding information} [Okay]: Things like licenses, docstrings, links to online references, etc., which cannot be expressed by the code itself or required by other tools. Often included based on necessity rather than merit.
+    \item \textbf{Marker} [Okay]: Mark sections of code that still need to be developed (e.g., \texttt{TODO: Fix separation oracle for unconnected graph}). As long as a \emph{consistent} convention is used, they can be helpful during code development. The final code, however, should not include any such comments.
+    \item \textbf{Assumptions} [Bad]: State assumptions that are being made about the code state (e.g., \texttt{N should be the length of the list}). Do NOT write these as comments; instead, use \texttt{assert} statements (e.g., \texttt{assert( N == myList.size() )}).
+    \item \textbf{Explanation} [Bad]: Explain a particularly tricky piece of code (e.g., \texttt{Stores state of second to last pointer address's handle}). In general, if the code is so complicated that it requires explanation, it is often (though not always) an indication that it can (and should) be improved.
+    \item \textbf{Repeat} [Bad]: Repeat information that is obvious to anyone with a reasonable amount of coding experience (e.g., \texttt{Initialize Cut object}). Such comments are useless, distracting, and often outdated.
+\end{enumerate}
+See \url{https://www.python.org/dev/peps/pep-0008/#prescriptive-naming-conventions} and \url{http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#nl-naming-and-layout-rules} for ``official'' recommendations on naming conventions. The Google style guides may also be helpful (see sections 3.8 and 3.16 of \url{https://google.github.io/styleguide/pyguide.html} for Python, and the Naming and Comments sections of \url{https://google.github.io/styleguide/cppguide.html} for C++). Chapter 32 Self-Documenting Code of \cite{codecomplete2} may also be useful for C++.
+
+
+
+\subsubsection{Docstrings}
+Docstrings are less necessary if your code is not meant to be re-used, but they can still be useful to keep track of the general structure of your program. If you decide to write docstrings, it is \textbf{recommended} that you write them in a way that is compatible with \emph{documentation generation tools} that automatically generate API documentation.\footnote{If you use Github and want to host a documentation page for your project on it, see \url{https://daler.github.io/sphinxdoc-test/includeme.html} for instructions.}
+
+The most common documention tool for Python is \emph{Sphinx} (install with \texttt{sudo apt-get install python3-sphinx} on Ubuntu). While Sphinx accepts a few docstring styles, the two main ones are the \emph{NumPy style} and the \emph{Google Style}. For smaller projects, the Google Style is recommended for its readability and suitability for short, simple docstrings. See \url{https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html} for examples. You may also refer to the relevant section in the official Google Python Style Guide at \url{https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings}.
+
+For C++, \emph{Doxygen} is a popular option (install with \texttt{sudo apt-get install doxygen} on Ubuntu). The two main docstring styles are the \emph{Javadoc style} and \emph{Qt style}, though they are fairly similar. See \url{http://www.doxygen.nl/manual/docblocks.html} for details on how to add documentation to source code.
+
+%See \url{http://www.doxygen.nl/manual/doxygen_usage.html} for general steps.
+
+\red{\textbf{TODO: Brief explanation/links on how to use Sphinx and Doxygen}}
+%\begin{enumerate}
+%    \item Comment code.
+%    \item Create \texttt{doc} directory and move to it.
+%    \item Run \texttt{doxygen -g <project\ttul name>.dxy}
+%    \item Edit config file.
+%        \begin{enumerate}
+%            \item Edit \texttt{PROJECT\ttul NAME}
+%            \item Edit \texttt{INPUT}
+%            \item Edit \texttt{FULL\ttul PATH\ttul NAMES}?
+%            \item Edit \texttt{TAB\ttul SIZE}
+%            \item Edit \texttt{FILE\ttul PATTERNS}
+%            \item Edit \texttt{HAVE\ttul DOT}
+%            \item Edit \texttt{DOT\ttul FONTNAME} to \texttt{FreeSans.ttf}?
+%            \item Edit \texttt{CLASS\ttul GRAPH}
+%            \item Edit \texttt{DOT\ttul TRANSPARENT}?
+%            \item Edit \texttt{SOURCE\ttul BROWSER}
+%            \item Edit \texttt{STRIP\ttul CODE\ttul COMMENTS}
+%            \item Edit \texttt{SHOW\ttul USED\ttul FILES}
+%            \item Edit \texttt{SHOW\ttul NAMESPACES}
+%            \item Edit \texttt{OPTIMIZE\ttul OUTPUT\ttul FOR\ttul C}?
+%            \item Edit \texttt{ABBREVIATE\ttul BRIEF} (probably not necessary)
+%            \item Edit \texttt{EXTRACT\ttul STATIC}? (probably not)
+%        \end{enumerate}
+%    \item Run \texttt{doxygen <project\ttul name>.dxy}.
+%\end{enumerate}
+
+
+\subsection{Optional Content}
+\subsubsection{Centralized VCS vs Distributed VCS}
+\textbf{Git} is not the only widely used version control system (VCS). In fact, it is a relatively new type of VCS, called a \emph{distributed VCS}, in contrast with older types called \emph{centralized VCS}:
+\begin{itemize}
+    \item In \emph{Centralized VCS}, there is a single (centralized) master copy of the code base that keeps track of the entire history of the code. Pieces of the code that are being worked on are typically locked, (or ``checked out'') so that only one developer is allowed to work on that part of the code at any one time. Access to the code base and the locking is controlled by the server. When the developer checks their code back in, the lock is released so it's available for others to check out. \textbf{CVS} and \textbf{Subversion} are two popular examples of centralized VCS.
+    \item In \emph{Distributed VCS}, each developer keeps a copy of the entire history of the code on their local machine. There may still be (and often there is) a master copy of the code base, but it is a purely informal designation; there is no mechanism in the VCS to mark which one is the master copy. This also means that there is no need to lock parts of the code; developers make changes in their local copy and then, once they're ready to integrate their changes into the master copy, they issue a request to the owner of the master copy to merge their changes into the master copy. \textbf{Git} and \textbf{Mercurial} are two popular examples of distributed VCS.
+\end{itemize}
+
+In general, distributed VCS has several advantages over centralized VCS (easy and fast branches, no need for network access, can look at entire history at all times) with very few drawbacks (larger space requirements, cloning can be expensive if project has long history). See \url{https://www.atlassian.com/blog/software-teams/version-control-centralized-dvcs} and \url{https://www.teamstudio.com/blog/distributed-vs-centralized-version-control-systems-for-lotus-notes} for more detailed discussions of the differences.
+
+\subsubsection{Virtual Environments (Python)}
+Virtual environments provide a systematic way to manage the installation of packages in Python. They can be useful when developing Python modules or when you need to use conflicting versions of modules for different projects.
+
+Both Anaconda and native Python provide methods to use virtual environments:
+\begin{itemize}
+    \item \textbf{Anaconda}: Use \texttt{conda create --name myenv} to create a new virtual environment, then activate it with \texttt{conda activate myenv}. See \url{https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html} for details.
+    \item \textbf{venv}:\footnote{\texttt{venv} is only available for Python 3. If for some reason you insist on using Python 2, there is a module called \texttt{virtualenv} that can be used for Python 2 and 3, though it tends to be slower than \texttt{venv} on Python 3. You can install it via \texttt{pip} with the command \texttt{pip install virtualenv}.} On Ubuntu, install with the command \texttt{sudo apt-get install python3-venv}. Use \texttt{python3 -m venv myenv} to create a new virtual environment. This creates a directory called \texttt{myenv} which contains a copy of the core Python installation. You can then install modules to this copy and everything will be contained within \texttt{myenv}, thus not affecting the system installation. See \url{https://docs.python.org/3/tutorial/venv.html} and \url{https://realpython.com/python-virtual-environments-a-primer/} for details.
+\end{itemize}
+%Why we need them for Python? Not for C++?
+%Anaconda, virtualenv (Python 2 and 3), venv module (Python 3)
+%\texttt{sudo apt-get install python3-venv}, or \texttt{pip3 install --user virtualenv} if user.
+
+%Anaconda: While installing to the base environment is simple and straightforward, it is probably safer to use a separate isolated environment when using the legacy API since mixing conda and pip packages can lead to strange behavior. You can create a new environment with \texttt{conda create --name myenv}, activate it with \texttt{conda activate myenv}, then proceed with the usual steps. See \url{https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html} for details.
+%virtualenv: Either through \texttt{python3-virtualenv} package, but can also install through pip3.
+%venv: Install \texttt{python3-venv} package. Slightly simpler and faster to set up then \texttt{virtualenv}.
+%virtualenv and pip reference
+%\url{https://www.dabapps.com/blog/introduction-to-pip-and-virtualenv-python/}, titled ``A non-magical introduction to Pip and Virtualenv for Python beginners''
+
+\printbibliography
+
+\end{document}
