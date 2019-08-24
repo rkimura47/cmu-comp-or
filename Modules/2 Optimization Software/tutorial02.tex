@@ -168,7 +168,8 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${CPLEX_ROOT}/opl/bin/x86-64_linux"
 On Windows, just run the bin file and accept all the default options.
 
 \subsubsection{Setting up the Python API}
-Starting from version 12.8.0, CPLEX has two Python APIs: the \textbf{legacy Python API}, which is a low-overhead wrapper to the core CPLEX engline, and \textbf{DOcplex}, which is a modeling library that wraps the legacy Python API together with additional constructs. While DOcplex is easier to use, it does not have direct access to some of the more advanced features of CPLEX (e.g., callbacks).\footnote{However, DOcplex does provide way to access the internal cplex object (from the legacy API) associated with a DOcplex model, so it is possible to use both APIs simultaneously to a certain degree.} See \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/Python/topics/cplex_python_overview.html} for details.
+Starting from version 12.8.0, CPLEX has two Python APIs: the \textbf{legacy Python API}, which is a low-overhead wrapper to the core CPLEX engline, and \textbf{DOcplex}, which is a modeling library that wraps the legacy Python API together with additional constructs (see \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/Python/topics/cplex_python_overview.html}).  While DOcplex is easier to use, it does not have direct access to some of the more advanced features of CPLEX (e.g., callbacks).\footnote{However, DOcplex does provide way to access the internal cplex object (from the legacy API) associated with a DOcplex model, so it is possible to use both APIs simultaneously to a certain degree.}
+
 
 Assuming Python is already installed (see Module 1), there are two ways to set up either (or both) of the APIs depending on whether you are using Anaconda or not:
 \begin{itemize}
@@ -193,11 +194,12 @@ conda install docplex
                     \item if you are installing the legacy API, run \texttt{pip3 install cplex/python/X.Y/ARCH} where X.Y is replaced by the version of Python you are using (you can find out with \texttt{python3 -V}) and ARCH is replaced by an appropriate name for the architecture. For example, if you are installing for Python 3.6 on Linux, the last argument would be \texttt{cplex/python/3.6/x86-64\ttul linux}.
                 \end{itemize}
         \end{enumerate}
-        In particular, it is \textbf{not} recommended to run \texttt{setup.py} directly or modify \texttt{PYTHONPATH} as suggested by the CPLEX documentation!
+        In particular, it is \textbf{not} recommended to run \texttt{setup.py} directly or modify \texttt{PYTHONPATH} as suggested by the \href{https://www.ibm.com/support/knowledgecenter/en/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html}{CPLEX documentation}!
 \end{itemize}
 
-You should now be able to run CPLEX's Python examples.
-See \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refpythoncplex/html/overview.html} for details on the legacy API and \url{https://ibmdecisionoptimization.github.io/docplex-doc} for details on DOcplex.\footnote{If you have tried the recommended options and you still get import errors, as a last resort you can create a soft link to the directory containing the CPLEX package \emph{in the same directory as the Python script that needs it}. Note that the soft link \emph{must} be named \texttt{docplex} (for DOcplex) or \texttt{cplex} (for legacy API). You can create soft links in Linux using the command \texttt{ln -s}.}
+You should now be able to run CPLEX's Python examples. See \url{https://www.ibm.com/support/knowledgecenter/en/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/UsrMan/topics/APIs/Python/01_title_synopsis.html} for details.
+
+In addition, see \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refpythoncplex/html/overview.html} for details on the legacy API and \url{https://ibmdecisionoptimization.github.io/docplex-doc} for details on DOcplex.\footnote{If you have tried the recommended options and you still get import errors, as a last resort you can create a soft link to the directory containing the CPLEX package \emph{in the same directory as the Python script that needs it}. Note that the soft link \emph{must} be named \texttt{docplex} (for DOcplex) or \texttt{cplex} (for legacy API). You can create soft links in Linux using the command \texttt{ln -s}.}
 
 \subsubsection{Setting up the C++ API}
 Assuming a C++ compiler is already installed (see Module 1), there is no additional setup needed to use the CPLEX C++ API unless you are using a build system (which we will cover in Module 5). Here are two simple ways to compile CPLEX's C++ examples:
