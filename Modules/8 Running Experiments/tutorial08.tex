@@ -194,9 +194,23 @@ cplex.getNnodes();
 \end{itemize}
 
 \subsubsection{Getting Optimization Status}
+\begin{itemize}
+    \item \textbf{Gurobi}:
+    \item \textbf{CPLEX}:
+        \begin{itemize}
+            \item \textbf{DOCplex}: If \texttt{m} is a \texttt{Model} instance (i.e., \texttt{m = Model()}), then we can get the optimization status with
+                \texttt{m.get\ttul solve\ttul status()}
+                Alternatively, we can use \texttt{sd = m.get\ttul solve\ttul details()} and \texttt{sd.status} or \texttt{st.status\ttul code}.
+            \item \textbf{Legacy Python}: If \texttt{c} is a \texttt{cplex} instance (i.e., \texttt{c = Cplex()}), then we can get the optimization status with \href{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refpythoncplex/html/cplex._internal._subinterfaces.SolutionInterface-class.html#get_status}{\texttt{c.solution.get\ttul status()}}, which returns an attribute of \href{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refpythoncplex/html/cplex._internal._subinterfaces.SolutionStatus-class.html}{\texttt{SolutionStatus}}.
+            \item \textbf{C++}: If \texttt{cplex} is an \texttt{IloCplex} instance associated with an \texttt{IloModel} object \texttt{model} (e.g., \texttt{IloModel model = IloModel(); IloCplex cplex(model)}), then we can get the basic optimization status with \href{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refcppcplex/html/classes/IloCplex.html#method_getStatus}{\texttt{cplex.getStatus()}}, which returns an enum of type \href{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refcppcplex/html/enumerations/IloAlgorithm_Status.html}{\texttt{IloAlgorithm::Status}}.  We can also get a more detailed optimization status specific to CPLEX with \href{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refcppcplex/html/classes/IloCplex.html#method_getCplexStatus}{\texttt{cplex.getCplexStatus()}}, which returns an enum of type \href{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refcppcplex/html/enumerations/IloCplex_CplexStatus.html}{\texttt{IloCplex::CplexStatus}}.
+        \end{itemize}
+
+        See \url{https://www.ibm.com/support/knowledgecenter/en/SSSA5P_latest/ilog.odms.cplex.help/refcallablelibrary/macros/Solution_status_codes.html} for solution status codes by number.
+        %See \url{https://www.ibm.com/support/knowledgecenter/en/SSSA5P_latest/ilog.odms.cplex.help/refcallablelibrary/macros/Error_codes.html} for error codes by number
+\end{itemize}
 
 
-\subsubsection{Measuing runtime}
+\subsubsection{Measuring runtime}
 \subsubsection{Using scripts}
 \subsubsection{Recording output}
 
