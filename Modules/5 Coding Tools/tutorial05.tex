@@ -77,6 +77,7 @@ Each of these phases has a different command for ``reversing'' one phase:
     \item (\emph{Commit}): Use \texttt{git reset HEAD\^} to reverse \texttt{git commit}. This removes the current commit entry while keeping all file changes intact.\footnote{If you want to reverse changes in the files as well, you can use \texttt{git reset --hard HEAD\^}. Note, however, that this change is irreversible!}
     \item (\emph{Push}): Use \texttt{git revert HEAD} followed by \texttt{git push} to reverse changes in the push phase. This creates a NEW commit that reverses the effects of the last commit, then pushes it to the remote repository.
 \end{itemize}
+See \url{https://sethrobertson.github.io/GitFixUm/fixup.html} for more extensive options on how to undo things in Git.
 
 \subsubsection{Recovering Files}
 The simplest way to recover a file is to run \texttt{git checkout -- <filename>}, which restores a file to the state associated with the last commit. This is useful when you accidentally delete a file or when you want to ``start over'' from the last commit. If you want to restore a file to a state associated with an older commit, follow these steps:
