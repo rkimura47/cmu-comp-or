@@ -18,8 +18,54 @@
 \maketitle
 
 \section{Callbacks}
-% Review of Branch and Bound
+\subsection{Review of Branch and Bound}
 %The idea is divide the feasible region based on the optimal solution to the LP relaxation. If the optimal solution to the LP relaxation happens to satisfy the integrality constraints of the original MIP, then it is also an optimal solution to the MIP. Otherwise, we branch, i.e., create two subproblems that do not eliminate any feasible solutions of the MIP but eliminate the current LP optimal solution (e.g., by picking a variable taking a fractional value, say $x_3 = 2.3$, and adding the constraint $x_3 \le 2$ in one subproblem and $x_3 \ge 2.3$ in the other subproblem).
 
-Look at what information is available in a callback\ldots what can and can't be done?
+\subsection{What is a Callback?}
+A \emph{callback} is a user-defined function that the solver then calls at certain points in the branch-and-bound algorithm. Callbacks are typically used to
+\begin{itemize}
+    \item Obtain information about the model at a node
+    \item Generate and add custom cuts within branch-and-bound
+    \item Implement complex stopping criteria
+    \item Use custom strategies for branching/node selection
+\end{itemize}
+
+What can and can't be done with a callback depends on what types of callbacks are defined by the solver's API. For example, both Gurobi and CPLEX have callbacks for adding cuts, but only CPLEX's legacy callbacks support custom strategies for branching/node selection.
+
+\subsection{User Constraints vs Lazy Constraints}
+MIP solvers distinguish between two types of cuts that are generated during branch-and-bound:
+\begin{itemize}
+    \item \emph{User cuts} are cutting planes/valid inequalities that strengthen the LP relaxation of the model.
+    \item \emph{Lazy cuts} are a (typically large) collection of inequalities that define some section of the feasible region.
+\end{itemize}
+Conceptually, the primary difference between the two is that lazy cuts are required for correctness of the formulation, whereas user cuts are not.
+
+As a concrete example, consider the Dantzig-Fulkerson-Johnson formulation of the traveling salesman problem:
+\begin{align*}
+    \min & \sum_{(i,j) \in A} c_{ij} x_{ij} \\
+    \mbox{s.t.} & \sum_{i \in N} x_{ij} = 1 \\
+    & \sum_{j \in N} x_{ij} = 1 \\
+    & \sum_{(i,j) \in \partial S} x_{ij} \ge 1 & \forall S \subseteq N \mbox{ s.t. } |2| \le S \le |N| - 1 \\
+    & x_{ij} \in (0,1)
+\end{align*}
+Here, the subtour elimination constraints are an example of lazy cuts. None of the subtour elimination constraints can be removed without violating the correctness of the formulation. However, for a particular instance of the problem, it is likely that the vast majority of the constraints are not required in order for the model to yield an optimal integer feasible solution. Thus, a common approach used for this formulation (and many others) is to only add a subtour elimination constraint to the model if it eliminates an otherwise feasible integer solution.
+
+By contrast, comb inequalities are an example of user cuts. The formulation is correct regardless of whether or not comb inequalities are included. That said, comb inequalities are among the strongest possible cuts that can be added to the formulation, since they expose a facet of the subtour elimination polytope. Thus, comb inequalities are often generated during the branch-and-bound procedure to strengthen the LP relaxation.
+
+For MIP solvers, the difference between the two is how they are added to the model.
+\begin{itemize}
+    \item User cuts are typically generated at select nodes in the branch-and-tree, and often some effort is taken to balance the usefulness of the cuts with the time taken to generate them. In general, the solver makes no guarantees as to if and when it adds a user cut.
+    \item For lazy cuts, solvers typically promise to generate a lazy cut every time it finds a feasible integer solution. This ensures that any solutions that violate a lazy constraint is eliminated from the branch and bound tree.
+\end{itemize}
+
+
+Most solvers require user cuts and lazy cuts to be valid, i.e., they are satisfied by every integer feasible solution in the formulation. However, for some problems it is useful to add \emph{optimality cuts} which can remove integer feasible solutions but not all optimal solutions. Such cuts are typically added as both user cuts and lazy cuts.
+
+\subsection{Callbacks in Gurobi}
+
+\subsection{Generic callbacks in CPLEX}
+
+\subsection{Legacy callbacks in CPLEX}
+
+
 \end{document}
