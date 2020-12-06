@@ -20,7 +20,8 @@
 In this module we will provide an overview of the main optimization solvers we will be using throughout the course, Gurobi and CPLEX; where they fit in the class of optimization solvers more generally, what problems they can solve, and how to install them.
 
 \subsection{Problem Classes and Solvers}
-One way to classify some of the optimization models used in operations research is by the types of constraints and objective function you are allowed to use. Since these differences often necessitate different solution algorithms, the classification also tends to correspond to different solvers.
+One way to classify some of the optimization models used in operations research is by the types of constraints and objective function you are allowed to use.
+Since these differences often necessitate different solution algorithms, the classification also tends to correspond to different solvers.
 
 The solvers we will be working with most extensively (i.e., Gurobi and CPLEX) are \emph{MIP solvers}, which are designed to solve the following types of problems:
 \begin{itemize}
@@ -48,23 +49,29 @@ Other classes of optimization problems that are also solvable in practice includ
 %Combinatorial Optimization (TSP, Matching, Stable Set): Concorde, NetworkX
 
 \subsection{Gurobi}
-Gurobi is a MIP solver that was first introduced in 2008 by three former developers of CPLEX: Zhonghao \textbf{Gu}, Edward \textbf{Ro}thberg, and Robert \textbf{Bi}xby. It is regarded as one of the best general purpose MIP solvers today, with competitive performance on a wide range of problems and continual improvements to the core solver.
+Gurobi is a MIP solver that was first introduced in 2008 by three former developers of CPLEX: Zhonghao \textbf{Gu}, Edward \textbf{Ro}thberg, and Robert \textbf{Bi}xby.
+It is regarded as one of the best general purpose MIP solvers today, with competitive performance on a wide range of problems and continual improvements to the core solver.
 
-While Gurobi is a commercial solver, it provides academic licenses free of charge. While each license can only be installed for a single physical (or virtual) machine, there is no limit on the number of free licenses you can obtain.
+While Gurobi is a commercial solver, it provides academic licenses free of charge.
+While each license can only be installed for a single physical (or virtual) machine, there is no limit on the number of free licenses you can obtain.
 
-Setting up Gurobi on your machine involves four steps: (1) obtaining an academic license, (2) installing Gurobi on your machine, (3) retreiving the license on your machine, and (4) setting up the API for your programming language. See Gurobi's \textbf{Quick Start Guides} (\url{http://www.gurobi.com/documentation/}) for details.
+Setting up Gurobi on your machine involves four steps: (1) obtaining an academic license, (2) installing Gurobi on your machine, (3) retreiving the license on your machine, and (4) setting up the API for your programming language.
+See Gurobi's \textbf{Quick Start Guides} (\url{http://www.gurobi.com/documentation/}) for details.
 \subsubsection{Obtaining an (Individual) Academic License}
 \begin{enumerate}
     \item Go to \url{http://www.gurobi.com/registration/academic-license-reg}.
-    \item If you don't already have a Gurobi account, register for one. Log in to your account.
+    \item If you don't already have a Gurobi account, register for one.
+        Log in to your account.
     \item Accept the EULA and conditions for an academic license (basically you cannot use it for commercial purposes), and press \menu{\textbf{Request License}}.
-    \item Your requested license will immediately appear in your account. You can access your current licenses by hovering over \raisebox{-.25\height}{\includegraphics[height=0.8\baselineskip]{GurobiAccountIcon.png}}, selecting \textbf{My Account}, then clicking on \textbf{Review Your Current Licenses} under \textbf{My Licenses}.
+    \item Your requested license will immediately appear in your account.
+        You can access your current licenses by hovering over \raisebox{-.25\height}{\includegraphics[height=0.8\baselineskip]{GurobiAccountIcon.png}}, selecting \textbf{My Account}, then clicking on \textbf{Review Your Current Licenses} under \textbf{My Licenses}.
 \end{enumerate}
 
 \subsubsection{Installing Gurobi}
 On Linux, perform the following steps (for the steps marked \textbf{[Admin]}, you will need admin privileges, so either put \texttt{sudo} before the command or log in to the \texttt{root} account):
 \begin{enumerate}
-    \item Go to \url{http://www.gurobi.com/downloads/gurobi-optimizer} and download the latest \textbf{64-bit Linux} version of Gurobi (you will need to accept the EULA). This will be in the form of a \emph{targz archive} (e.g., \texttt{gurobiX.Y.Z\ttul linux64.tar.gz}).
+    \item Go to \url{http://www.gurobi.com/downloads/gurobi-optimizer} and download the latest \textbf{64-bit Linux} version of Gurobi (you will need to accept the EULA).
+        This will be in the form of a \emph{targz archive} (e.g., \texttt{gurobiX.Y.Z\ttul linux64.tar.gz}).
     \item \textbf{[Admin]} If you don't already have an \texttt{/opt} directory in your root directory, create one  (see section 1.3.1 of Module 1).
     \item \textbf{[Admin]} Move the targz archive to the \texttt{/opt} directory (see section 1.1.2 of Module 1). %(e.g., \texttt{cd /opt; mv /mnt/d/Users/alice/Downloads/gurobiX.Y.Z\ttul linux64.tar.gz .}).
     \item \textbf{[Admin]} Extract the targz archive in the \texttt{/opt} directory (see section 1.3.1 of Module 1).
@@ -74,19 +81,26 @@ export GUROBI_HOME="/opt/gurobiXXX/linux64"
 export PATH="${PATH}:${GUROBI_HOME}/bin"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${GUROBI_HOME}/lib"
 \end{verbatim}
-        where XXX is replaced with appropriate version numbers. Note that, unlike many programming languages, whitespaces matters in Bash; in particular, make sure there are no spaces on either side of \texttt{=}.
+        where XXX is replaced with appropriate version numbers.
+        Note that, unlike many programming languages, whitespaces matters in Bash; in particular, make sure there are no spaces on either side of \texttt{=}.
     \item You may need to restart Bash in order for the modified environment variables to take effect.
 \end{enumerate}
 On Windows, the installation process is much simpler.
 \begin{enumerate}
-    \item Go to \url{http://www.gurobi.com/downloads/gurobi-optimizer} and download the latest \textbf{64-bit Windows} version of Gurobi (you will need to accept the EULA). This will be in the form of an \emph{MSI file} (e.g., \texttt{Gurobi-X.Y.Z-win64.msi}).
+    \item Go to \url{http://www.gurobi.com/downloads/gurobi-optimizer} and download the latest \textbf{64-bit Windows} version of Gurobi (you will need to accept the EULA).
+        This will be in the form of an \emph{MSI file} (e.g., \texttt{Gurobi-X.Y.Z-win64.msi}).
     \item Run the MSI file.
 \end{enumerate}
 
 \subsubsection{Retrieving the License}
 \begin{enumerate}
     \item Go to \url{ https://user.gurobi.com/download/licenses/current} and click on the license.
-    \item Run the \texttt{grbgetkey} command at the bottom of your license page from a command line terminal (on Windows, you can also run it by copying the command into the Run app). Note that you must be on CMU's network in order for \texttt{grbgetkey} to work.\footnote{You can install Gurobi to a machine that is not on CMU's network (e.g., a home desktop) by using a \emph{VPN client} (see section 1.2.2 of Module 1); however, you must connect using the \textbf{Library Resources VPN} since the General Resources VPN uses split tunneling, which causes issues with \texttt{grbgetkey}. (You can see this by clicking the gear icon of the AnyConnect client windowg, going to the statistics tab, and looking at the \emph{Tunnel Mode (IPv4)} setting under \emph{Connection Information}.) See \url{https://www.gurobi.com/documentation/current/quickstart_linux/academic_validation.html} and \url{http://www.gurobi.com/support/faqs\#AL} for more details.}
+    \item Run the \texttt{grbgetkey} command at the bottom of your license page from a command line terminal (on Windows, you can also run it by copying the command into the Run app).
+        Note that you must be on CMU's network in order for \texttt{grbgetkey} to work.\footnote{
+            You can install Gurobi to a machine that is not on CMU's network (e.g., a home desktop) by using a \emph{VPN client} (see section 1.2.2 of Module 1); however, you must connect using the \textbf{Library Resources VPN} since the General Resources VPN uses split tunneling, which causes issues with \texttt{grbgetkey}.
+            (You can see this by clicking the gear icon of the AnyConnect client windowg, going to the statistics tab, and looking at the \emph{Tunnel Mode (IPv4)} setting under \emph{Connection Information}.)
+            See \url{https://www.gurobi.com/documentation/current/quickstart_linux/academic_validation.html} and \url{http://www.gurobi.com/support/faqs\#AL} for more details.
+        }
     \item When prompted, save the license in the default location (i.e., your home directory).
 \end{enumerate}
 
@@ -102,38 +116,62 @@ conda install gurobi
 % Type gurobi
 % Change drop down from Installed to Uninstalled
 % In Search Packages search for gurobi and install
-        You can remove the Gurobi package at any time by running \texttt{conda remove gurobi}. See \url{http://www.gurobi.com/downloads/get-anaconda} for details.
-    \item If you are not using Anaconda, you need to install Gurobi's Python package by directly running \texttt{setup.py}.\footnote{While running \texttt{setup.py} directly is usually \textbf{not} recommended, in this case it is necessary due to Gurobi's use of non-standard features of distutils.} Follow these steps:
+        You can remove the Gurobi package at any time by running \texttt{conda remove gurobi}.
+        See \url{http://www.gurobi.com/downloads/get-anaconda} for details.
+    \item If you are not using Anaconda, you need to install Gurobi's Python package by directly running \texttt{setup.py}.\footnote{
+        While running \texttt{setup.py} directly is usually \textbf{not} recommended, in this case it is necessary due to Gurobi's use of non-standard features of distutils.
+        }
+        Follow these steps:
         \begin{enumerate}
             \item Navigate to the root Gurobi directory (usually \texttt{/opt/gurobiXXX/linux64/} or \texttt{C:\symbol{92}Program Files\symbol{92}GurobiXXX\symbol{92}win64\symbol{92}} where XXX is replaced with appropriate version numbers); it should contain a file called \texttt{setup.py}.
-            \item Run the command \texttt{python3 setup.py install} in the current directory.\footnote{If you get an error saying \texttt{distutils.base} is not found, you are missing the distutils Python module. In this case, it is \textbf{recommended} that you install \texttt{pip/pip3}, which will install distutils as a dependency.}\footnote{If you don't have Admin privileges you can run \texttt{python3 setup.py build -b /tmp install --user} instead to install the package to your user site directory. You can run the command \texttt{python3 -m site} to see where your user site directory is.}
+            \item Run the command \texttt{python3 setup.py install} in the current directory.\footnote{
+                If you get an error saying \texttt{distutils.base} is not found, you are missing the distutils Python module.
+                In this case, it is \textbf{recommended} that you install \texttt{pip/pip3}, which will install distutils as a dependency.
+                }\footnote{
+                    If you don't have Admin privileges you can run \texttt{python3 setup.py build -b /tmp install --user} instead to install the package to your user site directory. 
+                    You can run the command \texttt{python3 -m site} to see where your user site directory is.
+                }
         \end{enumerate}
         %In particular, it is \textbf{not} recommended to run \texttt{setup.py} directly as suggested by the Gurobi documentation!
 \end{itemize}
-You should now be able to run Gurobi's Python examples. See \url{http://www.gurobi.com/documentation/current/refman/py_python_api_overview.html} for details.\footnote{If you have tried the recommended options and you still get import errors, as a last resort you can create a soft link to the directory containing the Python package \emph{in the same directory as the Python script that needs it}. Note that the soft link \emph{must} be named \texttt{gurobipy}. You can create soft links in Linux using the command \texttt{ln -s}.}
+You should now be able to run Gurobi's Python examples.
+See \url{http://www.gurobi.com/documentation/current/refman/py_python_api_overview.html} for details.\footnote{
+    If you have tried the recommended options and you still get import errors, as a last resort you can create a soft link to the directory containing the Python package \emph{in the same directory as the Python script that needs it}.
+    Note that the soft link \emph{must} be named \texttt{gurobipy}.
+    You can create soft links in Linux using the command \texttt{ln -s}.
+}
 % Equivalent of a soft link in Windows is a Shortcut, right-click and select \menu{New > Shortcut} to make one.
 
 \subsubsection{Setting up the C++ API}
-Assuming a C++ compiler is already installed (see Module 1), there is no additional setup needed to use the Gurobi C++ API unless you are using a build system (which we will cover in Module 5). Here are two simple ways to compile Gurobi's C++ examples:
+Assuming a C++ compiler is already installed (see Module 1), there is no additional setup needed to use the Gurobi C++ API unless you are using a build system (which we will cover in Module 5).
+Here are two simple ways to compile Gurobi's C++ examples:
 \begin{itemize}
-    \item To compile directly from the command line, run a command similar to\footnote{Note that depending on the version of GCC you have (use the command \texttt{g++ --version} to find out), you may need to replace \texttt{-lgurobi\ttul c++} with \texttt{-lgurobi\ttul g++5.2} or \texttt{-lgurobi\ttul g++4.2}.}
+    \item To compile directly from the command line, run a command similar to\footnote{
+        Note that depending on the version of GCC you have (use the command \texttt{g++ --version} to find out), you may need to replace \texttt{-lgurobi\ttul c++} with \texttt{-lgurobi\ttul g++5.2} or \texttt{-lgurobi\ttul g++4.2}.
+        }
 \begin{verbatim}
 g++ -m64 -g -o example example.cpp -I${GUROBI_HOME} -L${GUROBI_HOME}/lib \
     -lgurobi_c++ -lgurobi81 -lm
 \end{verbatim}
         (Note that \texttt{\symbol{92}} is simply an indicator that the command is continued on the following line.)
-    \item Alternatively, you can use a \emph{Makefile}, which runs the compilation command for you based on some specified patterns. See the Canvas module for a minimal Makefile based on the ones provided by Gurobi and how to use it. See \url{http://www.gurobi.com/documentation/current/quickstart_linux/cpp_building_and_running_t.html} (in the \textbf{Quick Start Guides} under \menu{C++ Interface > Building and running the example}) for details.
+    \item Alternatively, you can use a \emph{Makefile}, which runs the compilation command for you based on some specified patterns.
+        See the Canvas module for a minimal Makefile based on the ones provided by Gurobi and how to use it.
+        See \url{http://www.gurobi.com/documentation/current/quickstart_linux/cpp_building_and_running_t.html} (in the \textbf{Quick Start Guides} under \menu{C++ Interface > Building and running the example}) for details.
 \end{itemize}
 See \url{http://www.gurobi.com/documentation/current/refman/cpp_api_overview.html} for details.
 
 
 
 \subsection{CPLEX}
-CPLEX is a MIP solver that was first introduced by Robert Bixby in 1988 as an LP solver, and later extended to a MIP solver in 1992. With decades of development and an illustrious history, it is one of the most well-respected MIP solvers that has long served as the de facto standard in the field. CPLEX is part of the larger optimization software package \textit{IBM ILOG CPLEX Optimization Studio}, which also includes the constraint programming solver \textit{CP Optimizer}, the high-level modeling language \textit{OPL (Optimization Programming Language)}, and a tightly integrated development environment called \textit{CPLEX Studio IDE}.
+CPLEX is a MIP solver that was first introduced by Robert Bixby in 1988 as an LP solver, and later extended to a MIP solver in 1992.
+With decades of development and an illustrious history, it is one of the most well-respected MIP solvers that has long served as the de facto standard in the field.
+CPLEX is part of the larger optimization software package \textit{IBM ILOG CPLEX Optimization Studio}, which also includes the constraint programming solver \textit{CP Optimizer}, the high-level modeling language \textit{OPL (Optimization Programming Language)}, and a tightly integrated development environment called \textit{CPLEX Studio IDE}.
 
-While CPLEX is a commercial MIP solver, it distributes its software free to academics through the \emph{IBM Academic Initiative} program. Unlike Gurobi, CPLEX does not have licenses, but rather they restrict downloads by requiring users to ``buy'' CPLEX through an online store.
+While CPLEX is a commercial MIP solver, it distributes its software free to academics through the \emph{IBM Academic Initiative} program.
+Unlike Gurobi, CPLEX does not have licenses, but rather they restrict downloads by requiring users to ``buy'' CPLEX through an online store.
 
-Setting up CPLEX on your machine involves three steps: (1) downloading CPLEX, (2) installing CPLEX on your machine, and (3) setting up the API for your programming language. See the following links for details:
+Setting up CPLEX on your machine involves three steps: (1) downloading CPLEX, (2) installing CPLEX on your machine, and (3) setting up the API for your programming language.
+See the following links for details:
 \begin{itemize}
     \item IBM Academic Resources FAQ (\url{https://developer.ibm.com/academic/frequently-asked-questions/\#downloadquestions})
     \item \textbf{Getting Started with CPLEX} from the CPLEX documentation (\url{https://www.ibm.com/support/knowledgecenter/en/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/setup_synopsis.html} or navigate \menu{CPLEX > Getting Started with CPLEX > Setting up CPLEX})
@@ -141,10 +179,15 @@ Setting up CPLEX on your machine involves three steps: (1) downloading CPLEX, (2
 \subsubsection{Downloading CPLEX}
 \begin{enumerate}
     \item Go to \url{https://ibm.onthehub.com}.
-    \item Register for an OnTheHub account. You will be asked to verify your email. Note that this is completely separate from your IBM id (if you have one).
-    \item Select CPLEX through the store by clicking \menu{Home Page} and navigating to \menu{Students > Data \& Analytics > Software > CPLEX} (this can be a bit tricky). Click \menu{Add to Cart}, then click \menu{Check Out}.
+    \item Register for an OnTheHub account.
+        You will be asked to verify your email.
+        Note that this is completely separate from your IBM id (if you have one).
+    \item Select CPLEX through the store by clicking \menu{Home Page} and navigating to \menu{Students > Data \& Analytics > Software > CPLEX} (this can be a bit tricky). 
+        Click \menu{Add to Cart}, then click \menu{Check Out}.
     \item Accept the Academic Initiative Program Agreement, and answer the 4 question survey.
-    \item At this point, your software request may get (erroneously) rejected. Don't panic; usually the error is resolved in about 10-15 minutes. If not, email them about the error at \url{https://ibm.onthehub.com/WebStore/Support/ContactUs.aspx}.
+    \item At this point, your software request may get (erroneously) rejected.
+        Don't panic; usually the error is resolved in about 10-15 minutes.
+        If not, email them about the error at \url{https://ibm.onthehub.com/WebStore/Support/ContactUs.aspx}.
     \item Download the appropriate version of the software (Linux x86-64 or Windows x86-64).
 \end{enumerate}
 
@@ -156,7 +199,8 @@ On Linux, perform the following steps (for the steps marked \textbf{[Admin]}, yo
     \item Enter \texttt{2} to choose the English locale (or a different one if desired).
     \item Enter \texttt{1} to accept the license agreement.
     \item Accept the default installation directory, usually \texttt{/opt/ibm/ILOG/CPLEX\ttul StudioXXX}.
-    \item Begin the installation, then wait for it to finish. Exit the installer after it's done.
+    \item Begin the installation, then wait for it to finish. 
+        Exit the installer after it's done.
     \item In your \texttt{.bashrc} file in your home directory (e.g., \texttt{/home/alice/.bashrc}), add the following lines to modify the environment variables \texttt{CPLEX\ttul ROOT} and \texttt{LD\ttul LIBRARY\ttul PATH}:
 \begin{verbatim}
 export CPLEX_ROOT="/opt/ibm/ILOG/CPLEX_StudioXXX"
@@ -168,12 +212,17 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${CPLEX_ROOT}/opl/bin/x86-64_linux"
 On Windows, just run the bin file and accept all the default options.
 
 \subsubsection{Setting up the Python API}
-Starting from version 12.8.0, CPLEX has two Python APIs: the \textbf{legacy Python API}, which is a low-overhead wrapper to the core CPLEX engline, and \textbf{DOcplex}, which is a modeling library that wraps the legacy Python API together with additional constructs (see \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/Python/topics/cplex_python_overview.html}).  While DOcplex is easier to use, it does not have direct access to some of the more advanced features of CPLEX (e.g., callbacks).\footnote{However, DOcplex does provide way to access the internal cplex object (from the legacy API) associated with a DOcplex model, so it is possible to use both APIs simultaneously to a certain degree.}
+Starting from version 12.8.0, CPLEX has two Python APIs: the \textbf{legacy Python API}, which is a low-overhead wrapper to the core CPLEX engline, and \textbf{DOcplex}, which is a modeling library that wraps the legacy Python API together with additional constructs (see \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/Python/topics/cplex_python_overview.html}).
+While DOcplex is easier to use, it does not have direct access to some of the more advanced features of CPLEX (e.g., callbacks).\footnote{
+    However, DOcplex does provide way to access the internal cplex object (from the legacy API) associated with a DOcplex model, so it is possible to use both APIs simultaneously to a certain degree.
+}
 
 
 Assuming Python is already installed (see Module 1), there are two ways to set up either (or both) of the APIs depending on whether you are using Anaconda or not:
 \begin{itemize}
-    \item If you are using \textbf{Anaconda}, you can install the DOcplex API by opening a terminal and running the commands\footnote{There is a \texttt{cplex} package on the channel as well, but that is for the community version of the CPLEX solver, which we obviously don't need.}
+    \item If you are using \textbf{Anaconda}, you can install the DOcplex API by opening a terminal and running the commands\footnote{
+        There is a \texttt{cplex} package on the channel as well, but that is for the community version of the CPLEX solver, which we obviously don't need.
+        }
 \begin{verbatim}
 conda config --add channels ibmdecisionoptimization
 conda install docplex
@@ -184,25 +233,37 @@ conda install docplex
 % In Search Packages search for docplex and install
         See \url{https://cdn.rawgit.com/IBMDecisionOptimization/docplex-doc/master/docs/getting_started_python.html} for details.
 
-        The legacy API is trickier since there is no official Conda package. The recommended method is to first install pip into the current conda environment with \texttt{conda install pip}, then use the non-Anaconda instructions to install via pip. You can verify that the package was installed by running \texttt{conda list}.
+        The legacy API is trickier since there is no official Conda package.
+        The recommended method is to first install pip into the current conda environment with \texttt{conda install pip}, then use the non-Anaconda instructions to install via pip.
+        You can verify that the package was installed by running \texttt{conda list}.
     \item If you are not using Anaconda, it is \textbf{highly} recommended that you install the packages with \texttt{pip/pip3}. Follow these steps:
         \begin{enumerate}
             \item Navigate to the root CPLEX directory (usually \texttt{/opt/ibm/ILOG/CPLEX\ttul StudioXXX} or \texttt{C:\symbol{92}Program Files\symbol{92}IBM\symbol{92}ILOG\symbol{92}CPLEX\ttul StudioXXX\symbol{92}} where XXX is replaced with appropriate version numbers).
             \item From the root CPLEX directory,
                 \begin{itemize}
-                    \item if you are installing DOcplex, run \texttt{pip3 install python/docplex}.\footnote{If you don't have Admin privileges you can run \texttt{pip3 install --user .} instead to install the package to your user site directory. You can run the command \texttt{python3 -m site} to see where your user site directory is.}
-                    \item if you are installing the legacy API, run \texttt{pip3 install cplex/python/X.Y/ARCH} where X.Y is replaced by the version of Python you are using (you can find out with \texttt{python3 -V}) and ARCH is replaced by an appropriate name for the architecture. For example, if you are installing for Python 3.6 on Linux, the last argument would be \texttt{cplex/python/3.6/x86-64\ttul linux}.
+                    \item if you are installing DOcplex, run \texttt{pip3 install python/docplex}.\footnote{
+                        If you don't have Admin privileges you can run \texttt{pip3 install --user .} instead to install the package to your user site directory. 
+                        You can run the command \texttt{python3 -m site} to see where your user site directory is.
+                        }
+                    \item if you are installing the legacy API, run \texttt{pip3 install cplex/python/X.Y/ARCH} where X.Y is replaced by the version of Python you are using (you can find out with \texttt{python3 -V}) and ARCH is replaced by an appropriate name for the architecture.
+                        For example, if you are installing for Python 3.6 on Linux, the last argument would be \texttt{cplex/python/3.6/x86-64\ttul linux}.
                 \end{itemize}
         \end{enumerate}
         In particular, it is \textbf{not} recommended to run \texttt{setup.py} directly or modify \texttt{PYTHONPATH} as suggested by the \href{https://www.ibm.com/support/knowledgecenter/en/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html}{CPLEX documentation}!
 \end{itemize}
 
-You should now be able to run CPLEX's Python examples. See \url{https://www.ibm.com/support/knowledgecenter/en/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/UsrMan/topics/APIs/Python/01_title_synopsis.html} for details.
+You should now be able to run CPLEX's Python examples.
+See \url{https://www.ibm.com/support/knowledgecenter/en/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/UsrMan/topics/APIs/Python/01_title_synopsis.html} for details.
 
-In addition, see \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refpythoncplex/html/overview.html} for details on the legacy API and \url{https://ibmdecisionoptimization.github.io/docplex-doc} for details on DOcplex.\footnote{If you have tried the recommended options and you still get import errors, as a last resort you can create a soft link to the directory containing the CPLEX package \emph{in the same directory as the Python script that needs it}. Note that the soft link \emph{must} be named \texttt{docplex} (for DOcplex) or \texttt{cplex} (for legacy API). You can create soft links in Linux using the command \texttt{ln -s}.}
+In addition, see \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refpythoncplex/html/overview.html} for details on the legacy API and \url{https://ibmdecisionoptimization.github.io/docplex-doc} for details on DOcplex.\footnote{
+    If you have tried the recommended options and you still get import errors, as a last resort you can create a soft link to the directory containing the CPLEX package \emph{in the same directory as the Python script that needs it}.
+    Note that the soft link \emph{must} be named \texttt{docplex} (for DOcplex) or \texttt{cplex} (for legacy API).
+    You can create soft links in Linux using the command \texttt{ln -s}.
+}
 
 \subsubsection{Setting up the C++ API}
-Assuming a C++ compiler is already installed (see Module 1), there is no additional setup needed to use the CPLEX C++ API unless you are using a build system (which we will cover in Module 5). Here are two simple ways to compile CPLEX's C++ examples:
+Assuming a C++ compiler is already installed (see Module 1), there is no additional setup needed to use the CPLEX C++ API unless you are using a build system (which we will cover in Module 5).
+Here are two simple ways to compile CPLEX's C++ examples:
 
 \begin{itemize}
     \item To compile it from the Linux command line, run a command similar to
@@ -214,19 +275,24 @@ g++ -m64 -g -DIL_STD -o example example.cpp \
     -lconcert -lilocplex -lcplex -lm -lpthread -ldl
 \end{verbatim}
         (Note that \texttt{\symbol{92}} is simply an indicator that the command is continued on the following line.)
-    \item Alternatively, you can use a \emph{Makefile}, which runs the compilation command for you based on some specified patterns. See the Canvas module for a minimal Makefile based on the ones provided by CPLEX and how to use it. See \textit{Setting up CPLEX on GNU/LINUX/macOS} in \textbf{Getting Started with CPLEX} (\url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/GNU_Linux.html}) for details.
+    \item Alternatively, you can use a \emph{Makefile}, which runs the compilation command for you based on some specified patterns.
+        See the Canvas module for a minimal Makefile based on the ones provided by CPLEX and how to use it.
+        See \textit{Setting up CPLEX on GNU/LINUX/macOS} in \textbf{Getting Started with CPLEX} (\url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/GNU_Linux.html}) for details.
 \end{itemize}
 See \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/refcppcplex/html/overview.html} for details.
 
 \subsection{Which Should I Choose? Gurobi or CPLEX?}
-In terms of performance, Gurobi and CPLEX are fairly equal; while for individual problems one may be slightly faster, on average they are roughly of the same caliber. The two solvers are also fairly equal feature-wise; while at certain times one may have a feature that the other does not, such differences tend to disappear in subsequent releases. That said, there are a few distinctions as of Gurobi 8.1 and CPLEX 12.9.0:
+In terms of performance, Gurobi and CPLEX are fairly equal; while for individual problems one may be slightly faster, on average they are roughly of the same caliber.
+The two solvers are also fairly equal feature-wise; while at certain times one may have a feature that the other does not, such differences tend to disappear in subsequent releases. 
+That said, there are a few distinctions as of Gurobi 8.1 and CPLEX 12.9.0:
 \begin{itemize}
     \item Gurobi's documentation is significantly more organized and easier to navigate than CPLEX's documentation.
     \item Gurobi has an official R API, while CPLEX only has unofficial packages (\texttt{cplexAPI} which is an R wrapper to the C API, and \texttt{Rcplex} which has a simple interface for solving models specified by matrices).
     \item Gurobi historically has better support for multiobjective optimization; for example, CPLEX only recently gained the ability to use hierarchical objectives for MIPs.
     \item CPLEX has slightly more users in both academia and industry due to its longer history.
     \item CPLEX, in addition to a MIP solver, comes packaged with a CP solver, a modeling language, and an IDE; Gurobi only includes a MIP solver.
-    \item CPLEX's generic callbacks and Gurobi's callbacks have similar functionality. However, CPLEX also has legacy callbacks which provide slightly more control over the branch-and-bound process (in particular, node selection and branching rules), although they are incompatible with the default dynamic search.
+    \item CPLEX's generic callbacks and Gurobi's callbacks have similar functionality.
+        However, CPLEX also has legacy callbacks which provide slightly more control over the branch-and-bound process (in particular, node selection and branching rules), although they are incompatible with the default dynamic search.
 \end{itemize}
 
 %\subsection{Optional Content}
