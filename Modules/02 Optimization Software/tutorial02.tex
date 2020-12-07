@@ -55,7 +55,7 @@ It is regarded as one of the best general purpose MIP solvers today, with compet
 While Gurobi is a commercial solver, it provides academic licenses free of charge.
 While each license can only be installed for a single physical (or virtual) machine, there is no limit on the number of free licenses you can obtain.
 
-Setting up Gurobi on your machine involves four steps: (1) obtaining an academic license, (2) installing Gurobi on your machine, (3) retreiving the license on your machine, and (4) setting up the API for your programming language.
+Setting up Gurobi on your machine involves four steps: (1) obtaining an academic license, (2) installing Gurobi on your machine, (3) retrieving the license on your machine, and (4) setting up the API for your programming language.
 See Gurobi's \textbf{Quick Start Guides} (\url{http://www.gurobi.com/documentation/}) for details.
 \subsubsection{Obtaining an (Individual) Academic License}
 \begin{enumerate}
@@ -64,7 +64,7 @@ See Gurobi's \textbf{Quick Start Guides} (\url{http://www.gurobi.com/documentati
         Log in to your account.
     \item Accept the EULA and conditions for an academic license (basically you cannot use it for commercial purposes), and press \menu{\textbf{Request License}}.
     \item Your requested license will immediately appear in your account.
-        You can access your current licenses by hovering over \raisebox{-.25\height}{\includegraphics[height=0.8\baselineskip]{GurobiAccountIcon.png}}, selecting \textbf{My Account}, then clicking on \textbf{Review Your Current Licenses} under \textbf{My Licenses}.
+        You can access your current licenses by hovering over \textbf{Downloads \& Licenses} and clicking on \textbf{Your Gurobi Licenses}.
 \end{enumerate}
 
 \subsubsection{Installing Gurobi}
@@ -94,18 +94,18 @@ On Windows, the installation process is much simpler.
 
 \subsubsection{Retrieving the License}
 \begin{enumerate}
-    \item Go to \url{ https://user.gurobi.com/download/licenses/current} and click on the license.
+    \item Go to \url{ https://www.gurobi.com/downloads/licenses} and click on the license.
     \item Run the \texttt{grbgetkey} command at the bottom of your license page from a command line terminal (on Windows, you can also run it by copying the command into the Run app).
         Note that you must be on CMU's network in order for \texttt{grbgetkey} to work.\footnote{
             You can install Gurobi to a machine that is not on CMU's network (e.g., a home desktop) by using a \emph{VPN client} (see section 1.2.2 of Module 1); however, you must connect using the \textbf{Library Resources VPN} since the General Resources VPN uses split tunneling, which causes issues with \texttt{grbgetkey}.
             (You can see this by clicking the gear icon of the AnyConnect client windowg, going to the statistics tab, and looking at the \emph{Tunnel Mode (IPv4)} setting under \emph{Connection Information}.)
-            See \url{https://www.gurobi.com/documentation/current/quickstart_linux/academic_validation.html} and \url{http://www.gurobi.com/support/faqs\#AL} for more details.
+            See \url{https://www.gurobi.com/documentation/current/quickstart_linux/academic_validation.html} and \url{https://support.gurobi.com/hc/en-us/sections/360009442672-Setting-Up-a-License-File-with-grbgetkey} for more details.
         }
     \item When prompted, save the license in the default location (i.e., your home directory).
 \end{enumerate}
 
 \subsubsection{Setting up the Python API}
-Assuming Python is already installed (see Module 1), there are two ways to set up the Gurobi Python API depending on whether you are using Anaconda or not:
+Assuming Python is already installed (see Module 1), there are two* ways to set up the Gurobi Python API:
 \begin{itemize}
     \item If you are using \textbf{Anaconda}, you can install the official Gurobi Anaconda package by opening a terminal and running the commands
 \begin{verbatim}
@@ -119,7 +119,7 @@ conda install gurobi
         You can remove the Gurobi package at any time by running \texttt{conda remove gurobi}.
         See \url{http://www.gurobi.com/downloads/get-anaconda} for details.
     \item If you are not using Anaconda, you need to install Gurobi's Python package by directly running \texttt{setup.py}.\footnote{
-        While running \texttt{setup.py} directly is usually \textbf{not} recommended, in this case it is necessary due to Gurobi's use of non-standard features of distutils.
+            While running \texttt{setup.py} directly is usually \textbf{not} recommended, in this case it is necessary due to Gurobi's use of non-standard features of distutils.
         }
         Follow these steps:
         \begin{enumerate}
@@ -133,6 +133,13 @@ conda install gurobi
                 }
         \end{enumerate}
         %In particular, it is \textbf{not} recommended to run \texttt{setup.py} directly as suggested by the Gurobi documentation!
+    \item Staring from Gurobi 9.1, the Python API can also be installed via a self-contained Python package available through Gurobi's private PyPI server.
+        The main advantage of this method is that the previous steps (obtaining an academic license, installing Gurobi, and retrieving the license) can be completely skipped, provided you do \textbf{not} need to use an academic license (and you are \textbf{only} using the Python API).\footnote{
+            It is possible to configure the Python package to use a retrieved academic license by specifying its location through an environment variable, e.g., \texttt{export GRB\ttul LICENSE\ttul FILE="/home/alice/gurobi.lic"}.
+        }
+        This is because the Python package includes a limited license that allows solving small models.
+        However, in our case we do want to use an academic license, which requires the previous steps, so there is little benefit to this approach.
+        See \url{https://www.gurobi.com/documentation/current/quickstart_linux/cs_using_pip_to_install_gr.html} for details.
 \end{itemize}
 You should now be able to run Gurobi's Python examples.
 See \url{http://www.gurobi.com/documentation/current/refman/py_python_api_overview.html} for details.\footnote{
