@@ -14,7 +14,7 @@ CARGS    = -m64 -g
 
 GRBDIR   = $(GUROBI_HOME)
 INC      = $(GRBDIR)/include/
-CPPLIB   = -L$(GRBDIR)/lib -lgurobi_g++5.2 -lgurobi81
+CPPLIB   = -L$(GRBDIR)/lib -lgurobi_g++5.2 -lgurobi91
 
 .PHONY: all
 all: $(MODEL_NAMES)
