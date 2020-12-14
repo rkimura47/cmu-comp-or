@@ -217,7 +217,7 @@ On Windows, just run the bin file and accept all the default options.
 
 \subsubsection{Setting up the Python API}
 Starting from version 12.8.0, CPLEX has two Python APIs: the \textbf{legacy Python API}, which is a low-overhead wrapper to the core CPLEX engline, and \textbf{DOcplex}, which is a modeling library that wraps the legacy Python API together with additional constructs (see \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cplex.help/CPLEX/Python/topics/cplex_python_overview.html}).
-While DOcplex is easier to use, it does not have direct access to some of the more advanced features of CPLEX (e.g., callbacks).\footnote{
+While DOcplex is easier to use, it does not have direct access to some of the more advanced features of CPLEX.\footnote{
     However, DOcplex does provide way to access the internal cplex object (from the legacy API) associated with a DOcplex model, so it is possible to use both APIs simultaneously to a certain degree.
 }
 
@@ -288,15 +288,16 @@ See \url{https://www.ibm.com/support/knowledgecenter/SSSA5P_latest/ilog.odms.cpl
 \subsection{Which Should I Choose? Gurobi or CPLEX?}
 In terms of performance, Gurobi and CPLEX are fairly equal; while for individual problems one may be slightly faster, on average they are roughly of the same caliber.
 The two solvers are also fairly equal feature-wise; while at certain times one may have a feature that the other does not, such differences tend to disappear in subsequent releases. 
-That said, there are a few distinctions as of Gurobi 8.1 and CPLEX 12.9.0:
+That said, there are a few distinctions as of Gurobi 9.1 and CPLEX 20.1.0:
 \begin{itemize}
     \item Gurobi's documentation is significantly more organized and easier to navigate than CPLEX's documentation.
     \item Gurobi has an official R API, while CPLEX only has unofficial packages (\texttt{cplexAPI} which is an R wrapper to the C API, and \texttt{Rcplex} which has a simple interface for solving models specified by matrices).
     \item Gurobi historically has better support for multiobjective optimization; for example, CPLEX only recently gained the ability to use hierarchical objectives for MIPs.
-    \item CPLEX has slightly more users in both academia and industry due to its longer history.
     \item CPLEX, in addition to a MIP solver, comes packaged with a CP solver, a modeling language, and an IDE; Gurobi only includes a MIP solver.
     \item CPLEX's generic callbacks and Gurobi's callbacks have similar functionality.
-        However, CPLEX also has legacy callbacks which provide slightly more control over the branch-and-bound process (in particular, node selection and branching rules), although they are incompatible with the default dynamic search.
+        However, CPLEX also has legacy callbacks which provide slightly more control over the branch-and-bound process (in particular, node selection and branching rules\footnote{
+            As of CPLEX 12.10.0, custom branching rules can also be specified via generic callbacks.
+        }), although they are incompatible with the default dynamic search.
 \end{itemize}
 
 %\subsection{Optional Content}
